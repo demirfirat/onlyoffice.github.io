@@ -164,6 +164,33 @@
         </div>
       </div>
     </div>
+    <!-- Loading View -->
+    <div id="loading-view" class="loading-view" style="display:none;">
+      <p style="margin-bottom:16px; font-size:13px;"><span id="DoNotClosePanel"></span></p>
+      <div class="loading-row">
+        <div class="loader small"></div>
+        <span style="margin-left:8px;">Loading...</span>
+      </div>
+    </div>
+    <!-- End Loading View -->
+    
+    <!-- Action Buttons View -->
+    <div id="action-buttons-view" class="action-buttons-view" style="display:none;">
+      <p style="margin-bottom:20px; font-size:13px; text-align:center;">
+        <span id="CleaningCompleted"></span><br/>
+        <span id="undo-steps-info" style="color:#666; font-size:11px;"></span>
+      </p>
+      <div class="action-buttons">
+        <button id="revert-button" class="btn-text-default action-btn secondary" style="width:48%; margin-right:4%;">
+          <span id="RevertToOriginal"></span>
+        </button>
+        <button id="new-clean-button" class="btn-text-default action-btn primary" style="width:48%;">
+          <span id="NewClean"></span>
+        </button>
+      </div>
+    </div>
+    <!-- End Action Buttons View -->
+
   </div>
   <script type="text/javascript" src="scripts/textcleaner.js"></script>
   

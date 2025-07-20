@@ -35,5 +35,11 @@
   "SentenceCase": "Sentence case.",
   "LowerCase": "lowercase",
   "UpperCase": "UPPERCASE",
-  "CapitalizeEach": "Capitalize Each Word"
+  "CapitalizeEach": "Capitalize Each Word",
+  "TextCleanerMenuTitle": "Text Cleaner",
+  "CleaningCompleted": "Text cleaning completed successfully!",
+  "OperationsApplied": "operations applied",
+  "RevertToOriginal": "Revert to Original",
+  "NewClean": "New Clean",
+  "DoNotClosePanel": "Please do not close the plugin panel."
 } 

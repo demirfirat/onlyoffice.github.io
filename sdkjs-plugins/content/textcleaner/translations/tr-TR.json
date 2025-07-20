@@ -35,5 +35,11 @@
   "ToggleCase": "tOGGLE cASE",
   "DisableAllCaps": "TAM BÜYÜK HARFİ kapat",
   "DisableSmallCaps": "Küçük Büyük Harfi kapat",
-  "ResetBaseline": "Taban çizgisine sıfırla"
+  "ResetBaseline": "Taban çizgisine sıfırla",
+  "TextCleanerMenuTitle": "Metin Temizleyici",
+  "CleaningCompleted": "Metin temizleme başarıyla tamamlandı!",
+  "OperationsApplied": "işlem uygulandı",
+  "RevertToOriginal": "Orijinaline Geri Dön",
+  "NewClean": "Yeni Temizleme",
+  "DoNotClosePanel": "Lütfen eklenti panelini kapatmayın."
 } 
