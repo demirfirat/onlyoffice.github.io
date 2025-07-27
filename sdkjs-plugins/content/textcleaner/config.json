@@ -5,7 +5,7 @@
   "version": "1.0.0",
   "variations": [
     {
-      "description": "Text Cleaner",
+      "description": "Text Cleaner is essentially a much more sophisticated version of the ‘clear formatting’ command which allows the user to preserve things like italics and bold. It also removes line breaks, multiple spaces and other annoying features often present in text copied from elsewhere. This leaves headings and paragraphs that conform to the document’s styles.",
       "url": "index.html",
       "icons": ["resources/light/icon.svg","resources/light/icon@2x.svg" ],
       "icons2": [
@@ -97,7 +97,7 @@
       "size": [380, 200]
     },
     {
-      "description": "Text Cleaner Background ContextMenu",
+      "description": "Text Cleaner Background Menu",
       "url": "ctx.html",
       "icons": [
         {

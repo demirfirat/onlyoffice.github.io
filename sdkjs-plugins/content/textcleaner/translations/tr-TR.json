@@ -11,6 +11,7 @@
   "FixPunctuation": "Noktalama işaretlerini düzelt",
   "RemoveEmptyParagraphs": "Boş paragrafları kaldır",
   "FontStandardization": "Yazı Tipi Standardizasyonu",
+  "ApplyFontStandardization": "Yazı tipi standardizasyonu uygula",
   "NormalizeSpaces": "Unicode boşluklarını normalleştir",
   "NormalizeNumbers": "Sayıları normalleştir",
   "TextCaseConversion": "Metin Büyük/Küçük Harf Dönüşümü",
@@ -41,5 +42,9 @@
   "OperationsApplied": "işlem uygulandı",
   "RevertToOriginal": "Orijinaline Geri Dön",
   "NewClean": "Yeni Temizleme",
-  "DoNotClosePanel": "Lütfen eklenti panelini kapatmayın."
+  "DoNotClosePanel": "Lütfen eklenti panelini kapatmayın.",
+  "AboutTitle": "Metin Temizleyici",
+  "AboutVersion": "Sürüm 1.0.0",
+  "AboutDescription": "Bu eklenti, belgenizdeki metni çeşitli seçeneklerle temizlemenize ve biçimlendirmenize yardımcı olur. Fazla boşlukları kolayca kaldırabilir, noktalama işaretlerini düzeltebilir ve birçok başka işlev gerçekleştirebilirsiniz.",
+  "AboutCopyright": "© 2025 ONLYOFFICE Eklentisi"
 } 
