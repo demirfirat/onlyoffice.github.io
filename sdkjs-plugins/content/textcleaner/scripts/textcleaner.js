@@ -1,5 +1,4 @@
 ((window) => {
-    // State management
     let originalState = null, hasCleanedDoc = false, undoCount = 0;
 
     const CONFIG = {
@@ -24,12 +23,11 @@
         toggle: t => t.split('').map(c => c === c.toUpperCase() ? c.toLowerCase() : c.toUpperCase()).join('')
     };
 
-    // Static context items - initialization sırasında getThemeIcon çağrılmayacak
     const getContextItems = () => [
         { 
             id: 'textCleaner', 
             text: 'TextCleanerMenuTitle', 
-            icons: getThemeIcon(), // Sadece context menu gösterilirken çağrılacak
+            icons: getThemeIcon(), 
             items: [
                 { id: 'clearFormattingCtx', text: 'ClearFormatting', items: [
                     { id: 'removeBoldCtx', text: 'RemoveBold' },
@@ -61,18 +59,14 @@
         }
     ];
 
-    // Tema algılama ve ikon seçimi - Güvenli versiyon
     function getThemeIcon() {
         try {
-            // OnlyOffice tema API'si varsa kullan
             if (window.Asc && window.Asc.plugin && window.Asc.plugin.info && window.Asc.plugin.info.theme) {
                 const theme = window.Asc.plugin.info.theme;
                 return theme.type === 'dark' ? 'resources/dark/icon.svg' : 'resources/light/icon.svg';
             }
             
-            // DOM hazır olup olmadığını kontrol et
             if (document && document.body) {
-                // Alternatif: CSS variable veya body class kontrolü
                 const isDark = document.body.classList.contains('theme-dark') || 
                               getComputedStyle(document.documentElement).getPropertyValue('--theme-type') === 'dark';
                 
@@ -82,18 +76,14 @@
             console.log('Theme detection failed, using light theme icon');
         }
         
-        // Fallback: light tema
         return 'resources/light/icon.svg';
     }
 
-    // Utility functions
     const $ = id => document.getElementById(id);
     const tr = key => window.Asc.plugin.tr ? window.Asc.plugin.tr(key) : key;
     const callCommand = (func, callback) => window.Asc.plugin.callCommand(func, false, true, callback);
 
-    // Generic text property applier
     const applyTextProp = (method, value) => {
-        // Store in global scope for callCommand access
         Asc.scope.currentMethod = method;
         Asc.scope.currentValue = value;
         
@@ -120,7 +110,6 @@
         undoCount++;
     };
 
-    // Special handlers
     const specialHandlers = {
         removeBgOutline: () => {
             callCommand(() => {
@@ -185,14 +174,12 @@
         textCaseConversion: caseOption => {
             if (caseOption === "none") return;
             
-            // Store case option in Asc.scope
             Asc.scope.textCaseOption = caseOption;
             
             callCommand(() => {
                 const doc = Api.GetDocument();
                 const range = doc.GetRangeBySelect();
                 
-                // Define converter function inside callCommand
                 let convertCase;
                 switch (Asc.scope.textCaseOption) {
                     case "upper":
@@ -244,7 +231,6 @@
         }
     };
 
-    // Main functions
     const getSettings = preset => preset || {
         removeBold: $("remove-bold")?.checked || false,
         removeItalic: $("remove-italic")?.checked || false,
@@ -273,17 +259,14 @@
         }
         undoCount = 0;
 
-        // Auto-adjust case conversion for caps options
         if ((settings.disableAllCaps || settings.disableSmallCaps) && settings.textCaseOption === "none") {
             settings.textCaseOption = "lower";
         }
 
-        // Apply standard text properties
         Object.entries(CONFIG).forEach(([key, config]) => {
             if (settings[key]) applyTextProp(config.method, config.value);
         });
 
-        // Apply special handlers
         if (settings.removeBgOutline) specialHandlers.removeBgOutline();
         specialHandlers.applyFontStandardization(settings);
         specialHandlers.textCaseConversion(settings.textCaseOption);
@@ -363,7 +346,6 @@
         const selectAll = $('select-all-options');
         const checkboxes = document.querySelectorAll('input[type="checkbox"]:not(#select-all-options)');
 
-        // Enable all by default
         checkboxes.forEach(cb => cb.checked = true);
         if (selectAll) {
             selectAll.checked = true;
@@ -372,7 +354,6 @@
             });
         }
 
-        // Clean button
         const cleanBtn = $('clean-button');
         if (cleanBtn) {
             cleanBtn.addEventListener('click', () => {
@@ -381,7 +362,6 @@
             });
         }
 
-        // Accordion toggle
         document.querySelectorAll('.acc-head').forEach(btn => {
             btn.addEventListener('click', () => {
                 const target = document.querySelector(btn.dataset.target);
@@ -392,7 +372,6 @@
                 if (chevron) chevron.style.transform = `rotate(${isOpen ? '0' : '180'}deg)`;
             });
             
-            // Set initial chevron state
             const target = document.querySelector(btn.dataset.target);
             const chevron = btn.querySelector('.chevron');
             if (target && chevron) {
@@ -401,7 +380,6 @@
         });
     };
 
-    // Context menu functionality
     const contextMenuActions = {
         removeBoldCtx: () => runCleanCommand({ removeBold: true }),
         removeItalicCtx: () => runCleanCommand({ removeItalic: true }),
@@ -423,10 +401,8 @@
         resetBaselineCtx: () => runCleanCommand({ resetBaseline: true })
     };
 
-    // Plugin API - Güvenli initialization
     window.Asc.plugin.init = function() {
         console.log("TextCleaner plugin initialized");
-        // DOM ready olduğundan emin olmak için setTimeout
         setTimeout(() => {
             refreshButtonState();
             setInterval(refreshButtonState, 1500);
@@ -470,11 +446,10 @@
     window.Asc.plugin.event_onContextMenuShow = options => {
         if (!options) return;
         
-        // Context menu gösterilirken dynamic olarak items oluştur
         const contextItems = getContextItems().map(item => ({
             ...item,
             text: tr(item.text),
-            icons: getThemeIcon(), // Her context menu show'da güncel tema iconunu al
+            icons: getThemeIcon(), 
             items: item.items ? translateContextItems(item.items) : undefined
         }));
         
@@ -484,7 +459,6 @@
         }]);
     };
 
-    // Context items translation helper
     const translateContextItems = items => items.map(item => ({
         ...item,
         text: tr(item.text),
