@@ -1,4 +1,5 @@
 ((window) => {
+    // State management
     let originalState = null, hasCleanedDoc = false, undoCount = 0;
 
     const CONFIG = {
@@ -23,11 +24,12 @@
         toggle: t => t.split('').map(c => c === c.toUpperCase() ? c.toLowerCase() : c.toUpperCase()).join('')
     };
 
+    // Static context items - initialization sırasında getThemeIcon çağrılmayacak
     const getContextItems = () => [
         { 
             id: 'textCleaner', 
             text: 'TextCleanerMenuTitle', 
-            icons: getThemeIcon(), 
+            icons: getThemeIcon(), // Sadece context menu gösterilirken çağrılacak
             items: [
                 { id: 'clearFormattingCtx', text: 'ClearFormatting', items: [
                     { id: 'removeBoldCtx', text: 'RemoveBold' },
@@ -59,14 +61,18 @@
         }
     ];
 
+    // Tema algılama ve ikon seçimi - Güvenli versiyon
     function getThemeIcon() {
         try {
+            // OnlyOffice tema API'si varsa kullan
             if (window.Asc && window.Asc.plugin && window.Asc.plugin.info && window.Asc.plugin.info.theme) {
                 const theme = window.Asc.plugin.info.theme;
                 return theme.type === 'dark' ? 'resources/dark/icon.svg' : 'resources/light/icon.svg';
             }
             
+            // DOM hazır olup olmadığını kontrol et
             if (document && document.body) {
+                // Alternatif: CSS variable veya body class kontrolü
                 const isDark = document.body.classList.contains('theme-dark') || 
                               getComputedStyle(document.documentElement).getPropertyValue('--theme-type') === 'dark';
                 
@@ -76,14 +82,18 @@
             console.log('Theme detection failed, using light theme icon');
         }
         
+        // Fallback: light tema
         return 'resources/light/icon.svg';
     }
 
+    // Utility functions
     const $ = id => document.getElementById(id);
     const tr = key => window.Asc.plugin.tr ? window.Asc.plugin.tr(key) : key;
     const callCommand = (func, callback) => window.Asc.plugin.callCommand(func, false, true, callback);
 
+    // Generic text property applier
     const applyTextProp = (method, value) => {
+        // Store in global scope for callCommand access
         Asc.scope.currentMethod = method;
         Asc.scope.currentValue = value;
         
@@ -110,6 +120,7 @@
         undoCount++;
     };
 
+    // Special handlers
     const specialHandlers = {
         removeBgOutline: () => {
             callCommand(() => {
@@ -173,9 +184,9 @@
 
         textCaseConversion: caseOption => {
             if (caseOption === "none") return;
-            
+        
             Asc.scope.textCaseOption = caseOption;
-            
+        
             callCommand(() => {
                 const doc = Api.GetDocument();
                 const range = doc.GetRangeBySelect();
@@ -183,54 +194,79 @@
                 let convertCase;
                 switch (Asc.scope.textCaseOption) {
                     case "upper":
-                        convertCase = function(t) { return t.toUpperCase(); };
+                        convertCase = t => t.toUpperCase();
                         break;
                     case "lower":
-                        convertCase = function(t) { return t.toLowerCase(); };
+                        convertCase = t => t.toLowerCase();
                         break;
                     case "sentence":
-                        convertCase = function(t) { return t.charAt(0).toUpperCase() + t.slice(1).toLowerCase(); };
+                        convertCase = t => t.charAt(0).toUpperCase() + t.slice(1).toLowerCase();
                         break;
                     case "capitalize":
-                        convertCase = function(t) { return t.replace(/\b\w/g, function(l) { return l.toUpperCase(); }); };
+                        convertCase = t => t.replace(/\b\w/g, l => l.toUpperCase());
                         break;
                     case "toggle":
-                        convertCase = function(t) { 
-                            return t.split('').map(function(c) { 
-                                return c === c.toUpperCase() ? c.toLowerCase() : c.toUpperCase(); 
-                            }).join(''); 
-                        };
+                        convertCase = t => t.split('').map(c => c === c.toUpperCase() ? c.toLowerCase() : c.toUpperCase()).join('');
                         break;
                     default:
-                        convertCase = function(t) { return t; };
+                        convertCase = t => t;
                 }
-                
-                if (range && range.GetText && range.GetText() !== "") {
-                    const text = range.GetText();
-                    const newText = convertCase(text);
-                    if (newText !== text) {
-                        range.Delete();
-                        const para = Api.CreateParagraph();
-                        para.AddText(newText);
-                        doc.InsertContent([para]);
-                    }
-                } else {
-                    const paragraphs = doc.GetAllParagraphs();
+        
+                const processParagraphs = paragraphs => {
                     for (let i = 0; i < paragraphs.length; i++) {
                         const para = paragraphs[i];
-                        const text = para.GetText();
-                        const newText = convertCase(text);
-                        if (newText !== text) {
+                        
+                        if (!para.GetElementsCount) continue;
+        
+                        const elementsCount = para.GetElementsCount();
+                        let fullText = "";
+                        let runs = [];
+        
+                        for (let j = 0; j < elementsCount; j++) {
+                            const elem = para.GetElement(j);
+                            if (elem.GetText) {
+                                const text = elem.GetText();
+                                if (text) {
+                                    fullText += text;
+                                    runs.push({ element: elem, text: text, length: text.length });
+                                }
+                            }
+                        }
+                        
+                        if (fullText.trim() === "") continue;
+        
+                        const newFullText = convertCase(fullText);
+        
+                        if (newFullText !== fullText) {
                             para.RemoveAllElements();
-                            para.AddText(newText);
+                            let currentPos = 0;
+                            for(let k = 0; k < runs.length; k++) {
+                                const run = runs[k];
+                                const newRunText = newFullText.substring(currentPos, currentPos + run.length);
+                                const newRun = Api.CreateRun();
+                                
+                                const oldPr = run.element.GetTextPr();
+                                newRun.SetTextPr(oldPr);
+                                newRun.AddText(newRunText);
+                                
+                                para.AddElement(newRun);
+                                currentPos += run.length;
+                            }
                         }
                     }
+                };
+        
+                if (range && range.GetText && range.GetText().trim() !== "") {
+                    processParagraphs(range.GetAllParagraphs());
+                } else {
+                    processParagraphs(doc.GetAllParagraphs());
                 }
             });
             undoCount++;
         }
     };
 
+    // Main functions
     const getSettings = preset => preset || {
         removeBold: $("remove-bold")?.checked || false,
         removeItalic: $("remove-italic")?.checked || false,
@@ -259,14 +295,17 @@
         }
         undoCount = 0;
 
+        // Auto-adjust case conversion for caps options
         if ((settings.disableAllCaps || settings.disableSmallCaps) && settings.textCaseOption === "none") {
             settings.textCaseOption = "lower";
         }
 
+        // Apply standard text properties
         Object.entries(CONFIG).forEach(([key, config]) => {
             if (settings[key]) applyTextProp(config.method, config.value);
         });
 
+        // Apply special handlers
         if (settings.removeBgOutline) specialHandlers.removeBgOutline();
         specialHandlers.applyFontStandardization(settings);
         specialHandlers.textCaseConversion(settings.textCaseOption);
@@ -346,6 +385,7 @@
         const selectAll = $('select-all-options');
         const checkboxes = document.querySelectorAll('input[type="checkbox"]:not(#select-all-options)');
 
+        // Enable all by default
         checkboxes.forEach(cb => cb.checked = true);
         if (selectAll) {
             selectAll.checked = true;
@@ -354,6 +394,7 @@
             });
         }
 
+        // Clean button
         const cleanBtn = $('clean-button');
         if (cleanBtn) {
             cleanBtn.addEventListener('click', () => {
@@ -362,6 +403,7 @@
             });
         }
 
+        // Accordion toggle
         document.querySelectorAll('.acc-head').forEach(btn => {
             btn.addEventListener('click', () => {
                 const target = document.querySelector(btn.dataset.target);
@@ -372,6 +414,7 @@
                 if (chevron) chevron.style.transform = `rotate(${isOpen ? '0' : '180'}deg)`;
             });
             
+            // Set initial chevron state
             const target = document.querySelector(btn.dataset.target);
             const chevron = btn.querySelector('.chevron');
             if (target && chevron) {
@@ -380,6 +423,7 @@
         });
     };
 
+    // Context menu functionality
     const contextMenuActions = {
         removeBoldCtx: () => runCleanCommand({ removeBold: true }),
         removeItalicCtx: () => runCleanCommand({ removeItalic: true }),
@@ -401,8 +445,10 @@
         resetBaselineCtx: () => runCleanCommand({ resetBaseline: true })
     };
 
+    // Plugin API - Güvenli initialization
     window.Asc.plugin.init = function() {
         console.log("TextCleaner plugin initialized");
+        // DOM ready olduğundan emin olmak için setTimeout
         setTimeout(() => {
             refreshButtonState();
             setInterval(refreshButtonState, 1500);
@@ -446,10 +492,11 @@
     window.Asc.plugin.event_onContextMenuShow = options => {
         if (!options) return;
         
+        // Context menu gösterilirken dynamic olarak items oluştur
         const contextItems = getContextItems().map(item => ({
             ...item,
             text: tr(item.text),
-            icons: getThemeIcon(), 
+            icons: getThemeIcon(), // Her context menu show'da güncel tema iconunu al
             items: item.items ? translateContextItems(item.items) : undefined
         }));
         
@@ -459,6 +506,7 @@
         }]);
     };
 
+    // Context items translation helper
     const translateContextItems = items => items.map(item => ({
         ...item,
         text: tr(item.text),
