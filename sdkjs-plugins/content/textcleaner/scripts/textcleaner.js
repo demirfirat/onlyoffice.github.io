@@ -1,5 +1,5 @@
 ((window) => {
-    // State management
+    
     let originalState = null, hasCleanedDoc = false, undoCount = 0;
 
     const CONFIG = {
@@ -24,12 +24,12 @@
         toggle: t => t.split('').map(c => c === c.toUpperCase() ? c.toLowerCase() : c.toUpperCase()).join('')
     };
 
-    // Static context items - initialization sırasında getThemeIcon çağrılmayacak
+   
     const getContextItems = () => [
         { 
             id: 'textCleaner', 
             text: 'TextCleanerMenuTitle', 
-            icons: getThemeIcon(), // Sadece context menu gösterilirken çağrılacak
+            icons: getThemeIcon(), 
             items: [
                 { id: 'clearFormattingCtx', text: 'ClearFormatting', items: [
                     { id: 'removeBoldCtx', text: 'RemoveBold' },
@@ -61,7 +61,6 @@
         }
     ];
 
-    // Tema algılama ve ikon seçimi - Güvenli versiyon
     function getThemeIcon() {
         try {
             // OnlyOffice tema API'si varsa kullan
@@ -383,10 +382,11 @@
 
     const onDomReady = () => {
         const selectAll = $('select-all-options');
-        const checkboxes = document.querySelectorAll('input[type="checkbox"]:not(#select-all-options)');
+        const checkboxes = document.querySelectorAll('input[type="checkbox"]:not(#select-all-options):not(#apply-font-standardization)');
 
-        // Enable all by default
         checkboxes.forEach(cb => cb.checked = true);
+        const fontStd = $('apply-font-standardization');
+        if (fontStd) fontStd.checked = false;
         if (selectAll) {
             selectAll.checked = true;
             selectAll.addEventListener('change', function() {
@@ -445,10 +445,8 @@
         resetBaselineCtx: () => runCleanCommand({ resetBaseline: true })
     };
 
-    // Plugin API - Güvenli initialization
     window.Asc.plugin.init = function() {
         console.log("TextCleaner plugin initialized");
-        // DOM ready olduğundan emin olmak için setTimeout
         setTimeout(() => {
             refreshButtonState();
             setInterval(refreshButtonState, 1500);
@@ -492,11 +490,10 @@
     window.Asc.plugin.event_onContextMenuShow = options => {
         if (!options) return;
         
-        // Context menu gösterilirken dynamic olarak items oluştur
         const contextItems = getContextItems().map(item => ({
             ...item,
             text: tr(item.text),
-            icons: getThemeIcon(), // Her context menu show'da güncel tema iconunu al
+            icons: getThemeIcon(), 
             items: item.items ? translateContextItems(item.items) : undefined
         }));
         
@@ -506,7 +503,6 @@
         }]);
     };
 
-    // Context items translation helper
     const translateContextItems = items => items.map(item => ({
         ...item,
         text: tr(item.text),
