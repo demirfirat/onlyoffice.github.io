@@ -6,6 +6,23 @@
   "variations": [
     {
       "description": "Text Cleaner is essentially a much more sophisticated version of the ‘clear formatting’ command which allows the user to preserve things like italics and bold. It also removes line breaks, multiple spaces and other annoying features often present in text copied from elsewhere. This leaves headings and paragraphs that conform to the document’s styles.",
+      "descriptionLocale":{
+        "en-US": "Text Cleaner is essentially a much more sophisticated version of the 'clear formatting' command which allows the user to preserve things like italics and bold. It also removes line breaks, multiple spaces and other annoying features often present in text copied from elsewhere. This leaves headings and paragraphs that conform to the document's styles.",
+        "tr-TR": "Text Cleaner, 'biçimlendirmeyi temizle' komutunun çok daha gelişmiş bir sürümüdür ve italik ile kalın gibi öğelerin korunmasını sağlar. Ayrıca satır sonlarını, birden fazla boşluğu ve başka yerden kopyalanan metinlerde sık görülen can sıkıcı özellikleri kaldırır. Böylece belgenin stillerine uygun başlıklar ve paragraflar bırakır.",
+        "de-DE": "Text Cleaner ist im Grunde eine wesentlich ausgefeiltere Version des Befehls 'Formatierung löschen', mit der Elemente wie Kursiv und Fett erhalten bleiben. Außerdem entfernt er Zeilenumbrüche, mehrfache Leerzeichen und andere störende Merkmale, die in aus anderen Quellen kopierten Texten häufig vorkommen. Dadurch bleiben Überschriften und Absätze übrig, die den Dokumentformatvorlagen entsprechen.",
+        "es-ES": "Text Cleaner es, básicamente, una versión mucho más sofisticada del comando 'borrar formato' que permite conservar elementos como cursiva y negrita. También elimina saltos de línea, espacios múltiples y otras molestias habituales en textos copiados de otros lugares. Deja títulos y párrafos que se ajustan a los estilos del documento.",
+        "fr-FR": "Text Cleaner est, en substance, une version bien plus sophistiquée de la commande 'Effacer la mise en forme' qui permet de conserver des éléments tels que l’italique et le gras. Il supprime également les retours à la ligne, les espaces multiples et d’autres éléments gênants souvent présents dans les textes copiés d’ailleurs. Il ne laisse que des titres et des paragraphes conformes aux styles du document.",
+        "it-IT": "Text Cleaner è, in sostanza, una versione molto più sofisticata del comando 'Cancella formattazione', che consente di preservare elementi come il corsivo e il grassetto. Rimuove anche le interruzioni di riga, gli spazi multipli e altre fastidiose caratteristiche spesso presenti nel testo copiato da altrove. Lascia titoli e paragrafi conformi agli stili del documento.",
+        "nl-NL": "Text Cleaner is in wezen een veel geavanceerdere versie van de opdracht 'opmaak wissen', waarmee elementen als cursief en vet behouden blijven. Het verwijdert ook regeleinden, meerdere spaties en andere vervelende kenmerken die vaak voorkomen in tekst die elders vandaan is gekopieerd. Het resultaat zijn koppen en alinea's die overeenkomen met de stijlen van het document.",
+        "pt-BR": "O Text Cleaner é, essencialmente, uma versão muito mais sofisticada do comando 'limpar formatação', que permite preservar elementos como itálico e negrito. Ele também remove quebras de linha, múltiplos espaços e outras características incômodas frequentemente presentes em textos copiados de outros lugares. Isso deixa títulos e parágrafos em conformidade com os estilos do documento.",
+        "ru-RU": "Text Cleaner — это, по сути, гораздо более продвинутая версия команды 'очистить форматирование', которая позволяет сохранять элементы вроде курсива и полужирного. Он также удаляет разрывы строк, множественные пробелы и другие раздражающие особенности, часто встречающиеся в тексте, скопированном из других источников. В итоге остаются заголовки и абзацы, соответствующие стилям документа.",
+        "sq-AL": "Text Cleaner është, në thelb, një version shumë më i sofistikuar i komandës 'hiq formatimin' që lejon të ruhen elemente si italiku dhe i trashi. Ai gjithashtu heq thyerjet e rreshtave, hapësirat e shumta dhe veçori të tjera të bezdisshme që shpesh gjenden në tekstin e kopjuar nga diku tjetër. Kështu mbeten tituj dhe paragrafë që përputhen me stilet e dokumentit.",
+        "sr-Cyrl-RS": "Text Cleaner је, у суштини, много напреднија верзија команде 'уклони форматирање' која омогућава да се сачувају елементи као што су курзив и подебљано. Такође уклања преломе редова, вишеструке размаке и друге досадне карактеристике које се често јављају у тексту копираном са других места. На крају остају наслови и пасуси који су у складу са стиловима документа.",
+        "sr-Latn-RS": "Text Cleaner je, u suštini, mnogo naprednija verzija komande 'ukloni formatiranje' koja omogućava da se sačuvaju elementi kao što su kurziv i podebljano. Takođe uklanja prelome redova, višestruke razmake i druge dosadne karakteristike koje se često javljaju u tekstu kopiranom sa drugih mesta. Na kraju ostaju naslovi i pasusi koji su u skladu sa stilovima dokumenta.",
+        "cs-CS": "Text Cleaner je ve své podstatě mnohem sofistikovanější verze příkazu 'vymazat formátování', která umožňuje zachovat prvky jako kurzíva a tučné písmo. Také odstraňuje zalomení řádků, vícenásobné mezery a další nepříjemnosti často přítomné v textu zkopírovaném odjinud. Zanechá nadpisy a odstavce, které odpovídají stylům dokumentu.",
+        "ja-JA": "Text Cleaner は、斜体や太字などを維持できる『書式のクリア』コマンドを、さらに高度にしたツールです。行区切り、複数の空白、他所からコピーしたテキストにありがちな厄介な要素も削除します。結果として、文書のスタイルに準拠した見出しと段落だけが残ります。",
+        "zh-ZH": "Text Cleaner 本质上是“清除格式”命令的更高级版本，允许保留斜体、粗体等元素。它还会移除换行、多余空格以及从其他地方复制的文本中常见的其它恼人内容。最终保留下与文档样式一致的标题和段落。"
+      },
       "url": "index.html",
       "icons": ["resources/light/icon.svg","resources/light/icon@2x.svg" ],
       "icons2": [
@@ -53,7 +70,12 @@
 					"light" : "resources/store/icons",
 					"dark"  : "resources/store/icons"
 				},
-        "screenshots": []
+        "screenshots": [
+					"resources/store/screenshots/screenshots1.png",
+					"resources/store/screenshots/screenshots2.png",
+					"resources/store/screenshots/screenshots3.png",
+					"resources/store/screenshots/screenshots4.png"
+				]
       }
     },
     {

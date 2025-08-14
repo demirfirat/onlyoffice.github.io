@@ -63,15 +63,12 @@
 
     function getThemeIcon() {
         try {
-            // OnlyOffice tema API'si varsa kullan
             if (window.Asc && window.Asc.plugin && window.Asc.plugin.info && window.Asc.plugin.info.theme) {
                 const theme = window.Asc.plugin.info.theme;
                 return theme.type === 'dark' ? 'resources/dark/icon.svg' : 'resources/light/icon.svg';
             }
             
-            // DOM hazır olup olmadığını kontrol et
             if (document && document.body) {
-                // Alternatif: CSS variable veya body class kontrolü
                 const isDark = document.body.classList.contains('theme-dark') || 
                               getComputedStyle(document.documentElement).getPropertyValue('--theme-type') === 'dark';
                 
@@ -81,7 +78,7 @@
             console.log('Theme detection failed, using light theme icon');
         }
         
-        // Fallback: light tema
+        
         return 'resources/light/icon.svg';
     }
 
