@@ -22,8 +22,7 @@
   	  "cs-CS": "Text Cleaner je chytřejší verze příkazu 'vymazat formátování'. Zachovává kurzívu a tučné písmo, zatímco odstraňuje zalomení řádků, přebytečné mezery a další nepořádek. Výsledkem je čistý text odpovídající stylům dokumentu.",
    	  "ja-JA": "Text Cleaner は「書式のクリア」のより賢いバージョンです。斜体や太字を維持しつつ、改行や余分なスペースなど不要な要素を削除し、文書のスタイルに合ったきれいなテキストを残します。",
   	  "zh-ZH": "Text Cleaner 是“清除格式”的更智能版本。它保留斜体和粗体，同时去除换行、多余空格和其他杂乱内容，留下符合文档样式的干净文本。"
-		}
-
+		},
       "url": "index.html",
       "icons": ["resources/light/icon.svg","resources/light/icon@2x.svg" ],
       "icons2": [
