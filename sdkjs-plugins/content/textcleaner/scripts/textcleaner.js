@@ -479,7 +479,7 @@
          'NormalizeSpaces', 'NormalizeNumbers', 'ResetLetterSpacing', 'ResetVertOffset', 'FixCasing',
          'DisableAllCaps', 'DisableSmallCaps', 'ResetBaseline', 'clean-button', 'CaseNone', 'SentenceCase',
          'LowerCase', 'UpperCase', 'CapitalizeEach', 'ToggleCase', 'CleaningCompleted', 'OperationsApplied',
-         'RevertToOriginal', 'NewClean', 'DoNotClosePanel'].forEach(setTr);
+         'RevertToOriginal', 'NewClean', 'DoNotClosePanel', 'Loading'].forEach(setTr);
 
         ['ClearFormatting', 'FontStandardization', 'TextCaseConversion', 'SpecialFormatting'].forEach(addChevron);
     };

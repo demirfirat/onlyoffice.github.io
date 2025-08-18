@@ -45,8 +45,10 @@
   "DoNotClosePanel": "Molimo ne zatvarajte panel dodatka.",
   "AboutTitle": "Čistač Teksta",
   "AboutVersion": "Verzija 1.0.0",
-  "AboutDescription": "Ovaj dodatak pomaže vam da očistite i formatirate tekst u dokumentu pomoću različitih opcija. Možete lako ukloniti višak razmaka, ispraviti interpunkciju i obaviti mnoge druge funkcije.",
-  "AboutCopyright": "© 2025 ONLYOFFICE Dodatak"
+      "AboutDescription": "Ovaj dodatak pomaže vam da očistite i formatirate tekst u dokumentu pomoću različitih opcija. Možete lako ukloniti višak razmaka, ispraviti interpunkciju i obaviti mnoge druge funkcije.",
+          "AboutCopyright": "© 2025 ONLYOFFICE Dodatak",
+      "Loading": "Učitavanje...",
+      "About": "O programu"
 }
 
 

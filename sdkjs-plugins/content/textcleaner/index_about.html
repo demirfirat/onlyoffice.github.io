@@ -5,6 +5,7 @@
   <title>About</title>
   <script type="text/javascript" src="../v1/plugins.js"></script>
   <script type="text/javascript" src="../v1/plugins-ui.js"></script>
+  <script type="text/javascript" src="../v1/translations.js"></script>
   <link rel="stylesheet" href="../v1/plugins.css">
   <style>
     body {
@@ -53,20 +54,7 @@
     <div class="copyright" id="about-copyright"></div>
   </div>
   <script>
-    let translations = {};
-    let currentLang = 'en-US';
-
-    function loadTranslations(lang) {
-      fetch(`translations/${lang}.json`)
-        .then(response => response.json())
-        .then(data => {
-          translations = data;
-          updateTexts();
-        })
-        .catch(error => {
-          console.warn(`Translation file for ${lang} not found, using default language`);
-        });
-    }
+    const tr = key => window.Asc.plugin.tr ? window.Asc.plugin.tr(key) : key;
 
     function updateTexts() {
       const titleElement = document.getElementById('about-title');
@@ -74,26 +62,18 @@
       const descriptionElement = document.getElementById('about-description');
       const copyrightElement = document.getElementById('about-copyright');
 
-      if (translations.AboutTitle) {
-        titleElement.textContent = translations.AboutTitle;
-      }
-      if (translations.AboutVersion) {
-        versionElement.textContent = translations.AboutVersion;
-      }
-      if (translations.AboutDescription) {
-        descriptionElement.textContent = translations.AboutDescription;
-      }
-      if (translations.AboutCopyright) {
-        copyrightElement.textContent = translations.AboutCopyright;
-      }
+      if (titleElement) titleElement.textContent = tr('AboutTitle');
+      if (versionElement) versionElement.textContent = tr('AboutVersion');
+      if (descriptionElement) descriptionElement.textContent = tr('AboutDescription');
+      if (copyrightElement) copyrightElement.textContent = tr('AboutCopyright');
     }
 
     window.Asc.plugin.init = function() {
-      if (window.Asc.plugin.info && window.Asc.plugin.info.lang) {
-        currentLang = window.Asc.plugin.info.lang;
-      }
-      
-      loadTranslations(currentLang);
+      updateTexts();
+    };
+
+    window.Asc.plugin.onTranslate = function() {
+      updateTexts();
     };
 
     window.Asc.plugin.button = function(id) {
