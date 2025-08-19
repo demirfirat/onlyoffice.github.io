@@ -24,7 +24,7 @@
     {
       "description": "Text Cleaner is a smarter version of 'clear formatting.' It keeps italics and bold while removing line breaks, extra spaces, and other clutter, leaving clean text that matches your document’s styles.",
       "descriptionLocale":{
-        "tr": "Text Cleaner, 'biçimlendirmeyi temizle' komutunun daha akıllı bir sürümüdür. İtalik ve kalın yazıları korurken satır sonlarını, fazla boşlukları ve gereksiz dağınıklıkları kaldırır. Böylece metin, belgenin stillerine uygun hale gelir.",
+        "tr-TR": "Text Cleaner, 'biçimlendirmeyi temizle' komutunun daha akıllı bir sürümüdür. İtalik ve kalın yazıları korurken satır sonlarını, fazla boşlukları ve gereksiz dağınıklıkları kaldırır. Böylece metin, belgenin stillerine uygun hale gelir.",
         "de": "Text Cleaner ist eine intelligentere Version von 'Formatierung löschen'. Kursiv und Fett bleiben erhalten, während Zeilenumbrüche, überflüssige Leerzeichen und anderer Ballast entfernt werden. Das Ergebnis ist sauberer Text, der den Dokumentstilen entspricht.",
         "es": "Text Cleaner es una versión más inteligente de 'borrar formato'. Mantiene cursivas y negritas mientras elimina saltos de línea, espacios extra y otros elementos innecesarios, dejando un texto limpio que se ajusta a los estilos del documento.",
         "fr": "Text Cleaner est une version plus intelligente de 'Effacer la mise en forme'. Il conserve l’italique et le gras tout en supprimant les retours à la ligne, les espaces en trop et autres éléments inutiles, laissant un texte propre adapté aux styles du document.",

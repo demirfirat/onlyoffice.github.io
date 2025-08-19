@@ -84,7 +84,74 @@
 
     // Utility functions
     const $ = id => document.getElementById(id);
-    const tr = key => window.Asc.plugin.tr ? window.Asc.plugin.tr(key) : key;
+    
+    // Improved translation function that falls back to English for unsupported languages
+    const tr = key => {
+        if (window.Asc.plugin.tr) {
+            const translation = window.Asc.plugin.tr(key);
+            // If the translation function returns the same key, it means no translation was found
+            // In this case, we should fall back to English
+            if (translation === key && window.Asc.plugin.info && window.Asc.plugin.info.lang) {
+                // Try to get English translation as fallback
+                const currentLang = window.Asc.plugin.info.lang;
+                if (currentLang !== 'en-US') {
+                    // Temporarily change language to English to get English translation
+                    const originalTr = window.Asc.plugin.tr;
+                    try {
+                        // This is a workaround - we'll use a simple fallback mechanism
+                        return getEnglishFallback(key);
+                    } catch (e) {
+                        console.log('Translation fallback failed:', e);
+                    }
+                }
+            }
+            return translation;
+        }
+        return key;
+    };
+    
+    // English fallback translations for unsupported languages
+    const getEnglishFallback = key => {
+        const englishTranslations = {
+            "TextCleaner": "Text Cleaner",
+            "AllParameters": "All parameters",
+            "ClearFormatting": "Clear Formatting",
+            "clean-button": "Clean",
+            "PluginInstructions": "Select a section of text to clear its formatting, or click <b>Clean</b> to clear formatting in the entire document.",
+            "RemoveBold": "Remove bold",
+            "RemoveItalic": "Remove italic",
+            "RemoveUnderline": "Remove underline",
+            "RemoveStrikeout": "Remove strikethrough",
+            "ClearTextColor": "Clear text color",
+            "RemoveHighlight": "Remove highlight",
+            "RemoveBgOutline": "Remove background & outline",
+            "FontStandardization": "Font Standardization",
+            "ApplyFontStandardization": "Apply font standardization",
+            "ResetLetterSpacing": "Reset letter spacing",
+            "ResetVertOffset": "Reset vertical offset",
+            "TextCaseConversion": "Text Case Conversion",
+            "CaseNone": "Do Not Change",
+            "SentenceCase": "Sentence case.",
+            "LowerCase": "lowercase",
+            "UpperCase": "UPPERCASE",
+            "CapitalizeEach": "Capitalize Each Word",
+            "ToggleCase": "tOGGLE cASE",
+            "SpecialFormatting": "Special Formatting",
+            "DisableAllCaps": "Disable ALL CAPS",
+            "DisableSmallCaps": "Disable Small Caps",
+            "ResetBaseline": "Reset to baseline",
+            "TextCleanerMenuTitle": "Text Cleaner",
+            "CleaningCompleted": "Text cleaning completed successfully!",
+            "OperationsApplied": "operations applied",
+            "RevertToOriginal": "Revert to Original",
+            "NewClean": "New Clean",
+            "DoNotClosePanel": "Please do not close the plugin panel.",
+            "Loading": "Loading..."
+        };
+        
+        return englishTranslations[key] || key;
+    };
+    
     const callCommand = (func, callback) => window.Asc.plugin.callCommand(func, false, true, callback);
 
     // Generic text property applier

@@ -54,7 +54,38 @@
     <div class="copyright" id="about-copyright"></div>
   </div>
   <script>
-    const tr = key => window.Asc.plugin.tr ? window.Asc.plugin.tr(key) : key;
+    // Improved translation function that falls back to English for unsupported languages
+    const tr = key => {
+        if (window.Asc.plugin.tr) {
+            const translation = window.Asc.plugin.tr(key);
+            // If the translation function returns the same key, it means no translation was found
+            // In this case, we should fall back to English
+            if (translation === key && window.Asc.plugin.info && window.Asc.plugin.info.lang) {
+                const currentLang = window.Asc.plugin.info.lang;
+                if (currentLang !== 'en-US') {
+                    try {
+                        return getEnglishFallback(key);
+                    } catch (e) {
+                        console.log('Translation fallback failed:', e);
+                    }
+                }
+            }
+            return translation;
+        }
+        return key;
+    };
+    
+    // English fallback translations for unsupported languages
+    const getEnglishFallback = key => {
+        const englishTranslations = {
+            "AboutTitle": "Text Cleaner",
+            "AboutVersion": "Version 1.0.0",
+            "AboutDescription": "This plugin helps you clean and format text in your document with various options. You can easily remove extra spaces, fix punctuation marks, and perform many other functions.",
+            "AboutCopyright": "© 2025 ONLYOFFICE Plugin"
+        };
+        
+        return englishTranslations[key] || key;
+    };
 
     function updateTexts() {
       const titleElement = document.getElementById('about-title');
