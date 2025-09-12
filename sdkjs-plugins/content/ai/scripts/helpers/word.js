@@ -29,6 +29,26 @@
  * terms at http://creativecommons.org/licenses/by-sa/4.0/legalcode
  *
  */
+/*
+ * User name: Firat Demir
+ * Function Name: changeCase
+ * Description: This function allows you to change the case of the selected text in the document. 
+ * You can convert text to UPPERCASE, lowercase, or Title Case (capitalize the first letter of each word).
+ * 
+ * Example Usage:
+ * 1. To convert selected text to uppercase:
+ *    [functionCalling (changeCase)]: {"caseType": "upper"}
+ *
+ * 2. To convert selected text to lowercase:
+ *    [functionCalling (changeCase)]: {"caseType": "lower"}
+ *
+ * 3. To capitalize the first letter of each word (Title Case):
+ *    [functionCalling (changeCase)]: {"caseType": "title"}
+ *
+ * Notes:
+ * - If no text is selected, the current word under the cursor will be changed.
+ * - This function is practical for quick text formatting and standardizing text cases.
+ */
 
 var WORD_FUNCTIONS = {};
 
@@ -486,6 +506,61 @@ var WORD_FUNCTIONS = {};
 
 		return func;
 	}
+    // changeCase
+    WORD_FUNCTIONS.changeCase = function()
+{
+    let func = new RegisteredFunction();
+    func.name = "changeCase";
+    func.params = [
+        "caseType (string): 'upper' for UPPERCASE, 'lower' for lowercase, 'title' for Title Case"
+    ];
+
+    func.examples = [
+        "If you need to make selected text uppercase, respond with:" +
+        "[functionCalling (changeCase)]: {\"caseType\": \"upper\"}",
+
+        "If you need to make selected text lowercase, respond with:" +
+        "[functionCalling (changeCase)]: {\"caseType\": \"lower\"}",
+
+        "If you need to make selected text Title Case, respond with:" +
+        "[functionCalling (changeCase)]: {\"caseType\": \"title\"}"
+    ];
+
+    func.call = async function(params) {
+        Asc.scope.caseType = params.caseType;
+
+        await Asc.Editor.callCommand(function(){
+            let doc = Api.GetDocument();
+            let range = doc.GetRangeBySelect();
+            if (!range || "" === range.GetText()) {
+                doc.SelectCurrentWord();
+                range = doc.GetRangeBySelect();
+            }
+
+            if (!range) return;
+
+            let text = range.GetText();
+            let newText = text;
+
+            if (Asc.scope.caseType === "upper") {
+                newText = text.toUpperCase();
+            } 
+            else if (Asc.scope.caseType === "lower") {
+                newText = text.toLowerCase();
+            } 
+            else if (Asc.scope.caseType === "title") {
+                newText = text.replace(/\w\S*/g, function(word) {
+                    return word.charAt(0).toUpperCase() + word.substr(1).toLowerCase();
+                });
+            }
+
+            range.SetText(newText);
+        });
+    };
+
+    return func;
+}
+
 })();
 
 function getWordFunctions() {
@@ -527,6 +602,7 @@ function getWordFunctions() {
 	funcs.push(WORD_FUNCTIONS.rewriteText());
 	funcs.push(WORD_FUNCTIONS.insertPage());
 	funcs.push(WORD_FUNCTIONS.checkSpelling());
+    funcs.push(WORD_FUNCTIONS.changeCase());//new function
 
 	return funcs;
 
