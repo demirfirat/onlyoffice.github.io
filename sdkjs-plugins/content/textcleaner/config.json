@@ -15,7 +15,8 @@
     "sr-Latn-RS": "Čistač Teksta",
     "cs-CS": "Čistič Textu",
     "ja": "テキストクリーナー",
-    "zh": "文本清理器"
+    "zh": "文本清理器",
+	"uk-UA": "Очищувач тексту"
   },
   "guid": "asc.{D8653A43-2F43-4CBB-9A9D-C6D3D0EE7B23}",
   "baseUrl": "",
@@ -37,7 +38,8 @@
         "sr-Latn-RS": "Text Cleaner je pametnija verzija komande 'ukloni formatiranje'. Čuva kurziv i podebljano, a uklanja prelome redova, višestruke razmake i druge nepotrebne elemente. Tako ostaje čist tekst u skladu sa stilovima dokumenta.",
         "cs-CS": "Text Cleaner je chytřejší verze příkazu 'vymazat formátování'. Zachovává kurzívu a tučné písmo, zatímco odstraňuje zalomení řádků, přebytečné mezery a další nepořádek. Výsledkem je čistý text odpovídající stylům dokumentu",
         "ja": "Text Cleaner は「書式のクリア」のより賢いバージョンです。斜体や太字を維持しつつ、改行や余分なスペースなど不要な要素を削除し、文書のスタイルに合ったきれいなテキストを残します。",
-        "zh": "Text Cleaner 是“清除格式”的更智能版本。它保留斜体和粗体，同时去除换行、多余空格和其他杂乱内容，留下符合文档样式的干净文本。"
+        "zh": "Text Cleaner 是“清除格式”的更智能版本。它保留斜体和粗体，同时去除换行、多余空格和其他杂乱内容，留下符合文档样式的干净文本。",
+		"uk-UA": "це більш розумна версія команди “очистити форматування”. Він зберігає курсив і напівжирний шрифт, водночас видаляючи розриви рядків, зайві пробіли та інший непотріб, залишаючи чистий текст, що відповідає стилям вашого документа."
       },
       "url": "index.html",
       "icons": ["resources/light/icon.svg","resources/light/icon@2x.svg" ],
