@@ -16,7 +16,7 @@
     "cs-CS": "Čistič Textu",
     "ja": "テキストクリーナー",
     "zh": "文本清理器",
-	"uk-UA": "Очищувач тексту"
+	  "uk": "Очищувач тексту"
   },
   "guid": "asc.{D8653A43-2F43-4CBB-9A9D-C6D3D0EE7B23}",
   "baseUrl": "",
@@ -114,7 +114,7 @@
         "sq": "Rreth",
         "sr-Latn": "O programu",
         "sr-Cyrl": "О програму",
-		"uk-UA": "Про"
+		    "uk": "Про"
       },
       "url": "index_about.html",
       "icons": [
