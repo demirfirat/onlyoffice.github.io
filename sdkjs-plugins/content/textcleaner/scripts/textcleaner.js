@@ -87,27 +87,23 @@
     
     // Improved translation function that falls back to English for unsupported languages
     const tr = key => {
-        if (window.Asc.plugin.tr) {
-            const translation = window.Asc.plugin.tr(key);
-            // If the translation function returns the same key, it means no translation was found
-            // In this case, we should fall back to English
-            if (translation === key && window.Asc.plugin.info && window.Asc.plugin.info.lang) {
-                // Try to get English translation as fallback
-                const currentLang = window.Asc.plugin.info.lang;
-                if (currentLang !== 'en-US') {
-                    // Temporarily change language to English to get English translation
-                    const originalTr = window.Asc.plugin.tr;
-                    try {
-                        // This is a workaround - we'll use a simple fallback mechanism
-                        return getEnglishFallback(key);
-                    } catch (e) {
-                        console.log('Translation fallback failed:', e);
-                    }
+        try {
+            if (window.Asc && window.Asc.plugin && typeof window.Asc.plugin.tr === 'function') {
+                const translation = window.Asc.plugin.tr(key);
+                
+                
+                if (translation && translation !== key) {
+                    return translation;
                 }
+                
+                
+                return getEnglishFallback(key);
             }
-            return translation;
+        } catch (e) {
+            console.log('Translation function failed, using fallback:', e);
         }
-        return key;
+        
+        return getEnglishFallback(key);
     };
     
     // English fallback translations for unsupported languages
