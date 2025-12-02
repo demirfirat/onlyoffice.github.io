@@ -11,12 +11,10 @@
     "pt": "Removedor de Texto",
     "ru": "Очиститель текста",
     "sq": "Pastrues Teksti",
-    "sr-Cyrl-RS": "Чистач Текста",
-    "sr-Latn-RS": "Čistač Teksta",
-    "cs": "Čistič Textu",
-    "ja": "テキストクリーナー",
     "zh": "文本清理器",
-	  "uk": "Очищувач тексту"
+	  "uk": "Очищувач тексту",
+    "ja": "テキストクリーナー",
+    "cs": "Čistič Textu"
   },
   "guid": "asc.{D8653A43-2F43-4CBB-9A9D-C6D3D0EE7B23}",
   "baseUrl": "",
@@ -34,8 +32,6 @@
         "br": "O Text Cleaner é uma versão mais inteligente de 'limpar formatação'. Mantém itálico e negrito enquanto remove quebras de linha, espaços extras e outras desordens, deixando o texto limpo e em conformidade com os estilos do documento.",
         "ru": "Text Cleaner — это более умная версия команды 'очистить форматирование'. Он сохраняет курсив и полужирный, удаляя разрывы строк, лишние пробелы и прочий мусор. В итоге остается чистый текст, соответствующий стилям документа.",
         "sq-AL": "Text Cleaner është një version më i zgjuar i 'hiq formatimin'. Ruajnë italikun dhe të trashin ndërsa heq thyerjet e rreshtave, hapësirat shtesë dhe rrëmujën tjetër, duke lënë tekst të pastër që përputhet me stilet e dokumentit.",
-        "sr-Cyrl-RS": "Text Cleaner је паметнија верзија команде 'уклони форматирање'. Чува курзив и подебљано, а уклања преломе редова, вишеструке размаке и друге непотребне елементе. Тако остаје чист текст у складу са стиловима документа.",
-        "sr-Latn-RS": "Text Cleaner je pametnija verzija komande 'ukloni formatiranje'. Čuva kurziv i podebljano, a uklanja prelome redova, višestruke razmake i druge nepotrebne elemente. Tako ostaje čist tekst u skladu sa stilovima dokumenta.",
         "cs": "Text Cleaner je chytřejší verze příkazu 'vymazat formátování'. Zachovává kurzívu a tučné písmo, zatímco odstraňuje zalomení řádků, přebytečné mezery a další nepořádek. Výsledkem je čistý text odpovídající stylům dokumentu",
         "ja": "Text Cleaner は「書式のクリア」のより賢いバージョンです。斜体や太字を維持しつつ、改行や余分なスペースなど不要な要素を削除し、文書のスタイルに合ったきれいなテキストを残します。",
         "zh": "Text Cleaner 是“清除格式”的更智能版本。它保留斜体和粗体，同时去除换行、多余空格和其他杂乱内容，留下符合文档样式的干净文本。",
@@ -113,8 +109,6 @@
         "nl": "Over",
         "cs": "O programu",
         "sq": "Rreth",
-        "sr-Latn": "O programu",
-        "sr-Cyrl": "О програму",
 		    "uk": "Про"
       },
       "url": "index_about.html",
