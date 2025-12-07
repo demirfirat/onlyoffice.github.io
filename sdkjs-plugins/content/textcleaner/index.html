@@ -3,9 +3,12 @@
 <head>
   <meta charset="UTF-8"/>
   <title>Text Cleaner</title>
-  <script type="text/javascript" src="../v1/plugins.js"></script>
-  <script type="text/javascript" src="../v1/plugins-ui.js"></script>
-  <link rel="stylesheet" href="../v1/plugins.css">
+  <!-- ONLYOFFICE Plugin SDK dosyaları - CDN'den yükleniyor -->
+  <script type="text/javascript" src="https://onlyoffice.github.io/sdkjs-plugins/v1/plugins.js"></script>
+  <script type="text/javascript" src="https://onlyoffice.github.io/sdkjs-plugins/v1/plugins-ui.js"></script>
+  <link rel="stylesheet" href="https://onlyoffice.github.io/sdkjs-plugins/v1/plugins.css">
+  
+  <!-- Plugin'e özel stil dosyası -->
   <link rel="stylesheet" href="styles/textcleaner.css">
 </head>
 <body class="asc-plugin-body">
@@ -63,6 +66,7 @@
             </div>
           </div>
           <hr class="separator"/>
+          
           <!-- ACCORDION 2: Font Standardization -->
           <div class="section asc-plugin-block">
             <div class="btn-text link acc-head" data-target="#acc-font" id="FontStandardization" tabindex="0" role="button">
@@ -169,6 +173,7 @@
         </div>
       </div>
     </div>
+    
     <!-- Loading View -->
     <div id="loading-view" class="loading-view" style="display:none;">
       <p style="margin-bottom:16px; font-size:13px;"><span id="DoNotClosePanel">Please do not close the plugin panel.</span></p>
@@ -177,7 +182,6 @@
         <span style="margin-left:8px;" id="Loading">Loading...</span>
       </div>
     </div>
-    <!-- End Loading View -->
     
     <!-- Action Buttons View -->
     <div id="action-buttons-view" class="action-buttons-view" style="display:none;">
@@ -194,11 +198,10 @@
         </button>
       </div>
     </div>
-    <!-- End Action Buttons View -->
 
   </div>
+  
+  <!-- Plugin JavaScript dosyası -->
   <script type="text/javascript" src="scripts/textcleaner.js"></script>
-  
-  
 </body>
-</html> 
+</html>
