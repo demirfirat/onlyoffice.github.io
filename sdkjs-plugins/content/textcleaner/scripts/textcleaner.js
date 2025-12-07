@@ -2,6 +2,7 @@
     
     let originalState = null, hasCleanedDoc = false, undoCount = 0;
 
+    // Tüm text property ayarları
     const CONFIG = {
         removeBold: { method: 'SetBold', value: false },
         removeItalic: { method: 'SetItalic', value: false },
@@ -16,6 +17,7 @@
         resetBaseline: { method: 'SetVertAlign', value: 'baseline' }
     };
 
+    // Case conversion fonksiyonları
     const CASE_OPTIONS = {
         upper: t => t.toUpperCase(),
         lower: t => t.toLowerCase(),
@@ -24,7 +26,6 @@
         toggle: t => t.split('').map(c => c === c.toUpperCase() ? c.toLowerCase() : c.toUpperCase()).join('')
     };
 
-   
     const getContextItems = () => [
         { 
             id: 'textCleaner', 
@@ -78,24 +79,19 @@
             console.log('Theme detection failed, using light theme icon');
         }
         
-        
         return 'resources/light/icon.svg';
     }
 
-    // Utility functions
     const $ = id => document.getElementById(id);
     
-    // Improved translation function that falls back to English for unsupported languages
     const tr = key => {
         try {
             if (window.Asc && window.Asc.plugin && typeof window.Asc.plugin.tr === 'function') {
                 const translation = window.Asc.plugin.tr(key);
                 
-                
                 if (translation && translation !== key) {
                     return translation;
                 }
-                
                 
                 return getEnglishFallback(key);
             }
@@ -106,7 +102,6 @@
         return getEnglishFallback(key);
     };
     
-    // English fallback translations for unsupported languages
     const getEnglishFallback = key => {
         const englishTranslations = {
             "TextCleaner": "Text Cleaner",
@@ -148,17 +143,47 @@
         return englishTranslations[key] || key;
     };
     
-    const callCommand = (func, callback) => window.Asc.plugin.callCommand(func, false, true, callback);
+    const callCommand = (func, callback) => {
+        if (window.Asc && window.Asc.plugin && window.Asc.plugin.callCommand) {
+            window.Asc.plugin.callCommand(func, false, true, callback);
+        } else {
+            console.error('Asc.plugin.callCommand is not available');
+        }
+    };
 
-    // Generic text property applier
-    const applyTextProp = (method, value) => {
-        // Store in global scope for callCommand access
-        Asc.scope.currentMethod = method;
-        Asc.scope.currentValue = value;
-        
+    // ============================================
+    // MERKEZI FONKSİYON: applyToRangeOrDocument
+    // Seçili alan varsa ona, yoksa tüm dokümana uygular
+    // ============================================
+    const applyToRangeOrDocument = (applyFunction) => {
         callCommand(() => {
             const doc = Api.GetDocument();
             const range = doc.GetRangeBySelect();
+            
+            // Seçili alan var mı?
+            if (range && range.GetText && range.GetText() !== "") {
+                // Seçili alana uygula
+                applyFunction(range, true);
+            } else {
+                // Tüm dokümana uygula
+                const paragraphs = doc.GetAllParagraphs();
+                for (let i = 0; i < paragraphs.length; i++) {
+                    applyFunction(paragraphs[i], false);
+                }
+            }
+        });
+        undoCount++;
+    };
+
+    // Text Property uygulayıcı (Bold, Italic, Color vs.)
+    const applyTextProp = (method, value) => {
+        if (!window.Asc) window.Asc = {};
+        if (!window.Asc.scope) window.Asc.scope = {};
+        
+        window.Asc.scope.currentMethod = method;
+        window.Asc.scope.currentValue = value;
+        
+        applyToRangeOrDocument((target, isRange) => {
             const textPr = Api.CreateTextPr();
             
             if (Array.isArray(Asc.scope.currentValue)) {
@@ -166,166 +191,163 @@
             } else {
                 textPr[Asc.scope.currentMethod](Asc.scope.currentValue);
             }
+            
+            target.SetTextPr(textPr);
+        });
+    };
 
-            if (range && range.GetText && range.GetText() !== "") {
-                range.SetTextPr(textPr);
-            } else {
-                const paragraphs = doc.GetAllParagraphs();
-                for (let i = 0; i < paragraphs.length; i++) {
-                    paragraphs[i].SetTextPr(textPr);
+    // Background & Outline temizleyici
+    const removeBgOutline = () => {
+        applyToRangeOrDocument((target, isRange) => {
+            const noStroke = Api.CreateStroke(0, Api.CreateSolidFill(Api.CreateRGBColor(0, 0, 0)));
+            
+            target.SetShd("clear", 255, 255, 255);
+            const textPr = Api.CreateTextPr();
+            textPr.SetOutLine(noStroke);
+            target.SetTextPr(textPr);
+            
+            if (!isRange) {
+                const paraPr = target.GetParaPr && target.GetParaPr();
+                if (paraPr) {
+                    paraPr.SetLeftBorder("none", 0, 0, 0, 0, 0);
+                    paraPr.SetRightBorder("none", 0, 0, 0, 0, 0);
+                    paraPr.SetTopBorder("none", 0, 0, 0, 0, 0);
+                    paraPr.SetBottomBorder("none", 0, 0, 0, 0, 0);
+                    if (paraPr.SetBetweenBorder) paraPr.SetBetweenBorder("none", 0, 0, 0, 0, 0);
                 }
             }
         });
-        undoCount++;
     };
 
-    // Special handlers
-    const specialHandlers = {
-        removeBgOutline: () => {
-            callCommand(() => {
-                const doc = Api.GetDocument();
-                const range = doc.GetRangeBySelect();
-                const noStroke = Api.CreateStroke(0, Api.CreateSolidFill(Api.CreateRGBColor(0, 0, 0)));
+    // Font standardization
+    const applyFontStandardization = (settings) => {
+        if (!settings.applyFontStandardization || (!settings.targetFontFamily && !settings.targetFontSize)) return;
+        
+        if (!window.Asc) window.Asc = {};
+        if (!window.Asc.scope) window.Asc.scope = {};
+        
+        window.Asc.scope.targetFontFamily = settings.targetFontFamily;
+        window.Asc.scope.targetFontSize = settings.targetFontSize;
+        
+        applyToRangeOrDocument((target, isRange) => {
+            const textPr = Api.CreateTextPr();
+            
+            if (Asc.scope.targetFontFamily) textPr.SetFontFamily(Asc.scope.targetFontFamily);
+            if (Asc.scope.targetFontSize) textPr.SetFontSize(Asc.scope.targetFontSize * 2);
+            
+            target.SetTextPr(textPr);
+        });
+    };
+
+    // Text Case Conversion - TEK MERKEZİ FONKSİYON
+    const applyTextCaseConversion = (caseOption) => {
+        if (caseOption === "none" || !CASE_OPTIONS[caseOption]) return;
+        
+        if (!window.Asc) window.Asc = {};
+        if (!window.Asc.scope) window.Asc.scope = {};
+        
+        window.Asc.scope.caseOption = caseOption;
+        
+        applyToRangeOrDocument((target, isRange) => {
+            const convertCase = CASE_OPTIONS[Asc.scope.caseOption];
+            
+            if (isRange) {
+                // Range için: GetText ile metni al, dönüştür
+                const originalText = target.GetText();
+                if (!originalText) return;
                 
-                const processItems = items => {
-                    for (let i = 0; i < items.length; i++) {
-                        const item = items[i];
-                        item.SetShd("clear", 255, 255, 255);
-                        const textPr = Api.CreateTextPr();
-                        textPr.SetOutLine(noStroke);
-                        item.SetTextPr(textPr);
-                        
-                        const paraPr = item.GetParaPr && item.GetParaPr();
-                        if (paraPr) {
-                            paraPr.SetLeftBorder("none", 0, 0, 0, 0, 0);
-                            paraPr.SetRightBorder("none", 0, 0, 0, 0, 0);
-                            paraPr.SetTopBorder("none", 0, 0, 0, 0, 0);
-                            paraPr.SetBottomBorder("none", 0, 0, 0, 0, 0);
-                            if (paraPr.SetBetweenBorder) paraPr.SetBetweenBorder("none", 0, 0, 0, 0, 0);
+                const convertedText = convertCase(originalText);
+                if (convertedText === originalText) return;
+                
+                // Range'deki tüm elementleri bul
+                const elements = [];
+                const collectElements = (elem) => {
+                    if (elem.GetElementsCount) {
+                        for (let i = 0; i < elem.GetElementsCount(); i++) {
+                            collectElements(elem.GetElement(i));
                         }
+                    } else if (elem.GetText) {
+                        elements.push(elem);
                     }
                 };
-
-                if (range && range.GetText && range.GetText() !== "") {
-                    processItems([range]);
-                } else {
-                    processItems(doc.GetAllParagraphs());
-                }
-            });
-            undoCount++;
-        },
-
-        applyFontStandardization: settings => {
-            if (!settings.applyFontStandardization || (!settings.targetFontFamily && !settings.targetFontSize)) return;
-            
-            Asc.scope.targetFontFamily = settings.targetFontFamily;
-            Asc.scope.targetFontSize = settings.targetFontSize;
-            
-            callCommand(() => {
-                const doc = Api.GetDocument();
-                const range = doc.GetRangeBySelect();
-                const textPr = Api.CreateTextPr();
+                collectElements(target);
                 
-                if (Asc.scope.targetFontFamily) textPr.SetFontFamily(Asc.scope.targetFontFamily);
-                if (Asc.scope.targetFontSize) textPr.SetFontSize(Asc.scope.targetFontSize * 2);
-
-                if (range && range.GetText && range.GetText() !== "") {
-                    range.SetTextPr(textPr);
-                } else {
-                    const paragraphs = doc.GetAllParagraphs();
-                    for (let i = 0; i < paragraphs.length; i++) {
-                        paragraphs[i].SetTextPr(textPr);
-                    }
-                }
-            });
-            undoCount++;
-        },
-
-        textCaseConversion: caseOption => {
-            if (caseOption === "none") return;
-        
-            Asc.scope.textCaseOption = caseOption;
-        
-            callCommand(() => {
-                const doc = Api.GetDocument();
-                const range = doc.GetRangeBySelect();
-                
-                let convertCase;
-                switch (Asc.scope.textCaseOption) {
-                    case "upper":
-                        convertCase = t => t.toUpperCase();
-                        break;
-                    case "lower":
-                        convertCase = t => t.toLowerCase();
-                        break;
-                    case "sentence":
-                        convertCase = t => t.charAt(0).toUpperCase() + t.slice(1).toLowerCase();
-                        break;
-                    case "capitalize":
-                        convertCase = t => t.replace(/\b\w/g, l => l.toUpperCase());
-                        break;
-                    case "toggle":
-                        convertCase = t => t.split('').map(c => c === c.toUpperCase() ? c.toLowerCase() : c.toUpperCase()).join('');
-                        break;
-                    default:
-                        convertCase = t => t;
-                }
-        
-                const processParagraphs = paragraphs => {
-                    for (let i = 0; i < paragraphs.length; i++) {
-                        const para = paragraphs[i];
+                // Her run'ı güncelle
+                let processedLength = 0;
+                for (let i = 0; i < elements.length; i++) {
+                    const elem = elements[i];
+                    const elemText = elem.GetText();
+                    if (elemText) {
+                        const elemLength = elemText.length;
+                        const newElemText = convertedText.substring(processedLength, processedLength + elemLength);
                         
-                        if (!para.GetElementsCount) continue;
-        
-                        const elementsCount = para.GetElementsCount();
-                        let fullText = "";
-                        let runs = [];
-        
-                        for (let j = 0; j < elementsCount; j++) {
-                            const elem = para.GetElement(j);
-                            if (elem.GetText) {
-                                const text = elem.GetText();
-                                if (text) {
-                                    fullText += text;
-                                    runs.push({ element: elem, text: text, length: text.length });
-                                }
+                        // Eski özellikleri koru
+                        const oldPr = elem.GetTextPr();
+                        
+                        // Yeni run oluştur
+                        const parent = elem.GetParent && elem.GetParent();
+                        if (parent && parent.RemoveElement && parent.AddElement) {
+                            const newRun = Api.CreateRun();
+                            newRun.SetTextPr(oldPr);
+                            newRun.AddText(newElemText);
+                            
+                            const elemIndex = parent.GetElementsCount ? 
+                                Array.from({length: parent.GetElementsCount()}, (_, idx) => idx)
+                                    .find(idx => parent.GetElement(idx) === elem) : -1;
+                            
+                            if (elemIndex !== -1) {
+                                parent.RemoveElement(elemIndex);
+                                parent.AddElement(newRun, elemIndex);
                             }
                         }
                         
-                        if (fullText.trim() === "") continue;
-        
-                        const newFullText = convertCase(fullText);
-        
-                        if (newFullText !== fullText) {
-                            para.RemoveAllElements();
-                            let currentPos = 0;
-                            for(let k = 0; k < runs.length; k++) {
-                                const run = runs[k];
-                                const newRunText = newFullText.substring(currentPos, currentPos + run.length);
-                                const newRun = Api.CreateRun();
-                                
-                                const oldPr = run.element.GetTextPr();
-                                newRun.SetTextPr(oldPr);
-                                newRun.AddText(newRunText);
-                                
-                                para.AddElement(newRun);
-                                currentPos += run.length;
-                            }
+                        processedLength += elemLength;
+                    }
+                }
+            } else {
+                // Paragraph için: Tüm paragrafın metnini işle
+                if (!target.GetElementsCount) return;
+                
+                const elementsCount = target.GetElementsCount();
+                let fullText = "";
+                let runs = [];
+                
+                for (let j = 0; j < elementsCount; j++) {
+                    const elem = target.GetElement(j);
+                    if (elem.GetText) {
+                        const text = elem.GetText();
+                        if (text) {
+                            fullText += text;
+                            runs.push({ element: elem, text: text, length: text.length });
                         }
                     }
-                };
-        
-                if (range && range.GetText && range.GetText().trim() !== "") {
-                    processParagraphs(range.GetAllParagraphs());
-                } else {
-                    processParagraphs(doc.GetAllParagraphs());
                 }
-            });
-            undoCount++;
-        }
+                
+                if (fullText.trim() === "") return;
+                
+                const newFullText = convertCase(fullText);
+                
+                if (newFullText !== fullText) {
+                    target.RemoveAllElements();
+                    let currentPos = 0;
+                    for (let k = 0; k < runs.length; k++) {
+                        const run = runs[k];
+                        const newRunText = newFullText.substring(currentPos, currentPos + run.length);
+                        const newRun = Api.CreateRun();
+                        
+                        const oldPr = run.element.GetTextPr();
+                        newRun.SetTextPr(oldPr);
+                        newRun.AddText(newRunText);
+                        
+                        target.AddElement(newRun);
+                        currentPos += run.length;
+                    }
+                }
+            }
+        });
     };
 
-    // Main functions
+    // Main settings getter
     const getSettings = preset => preset || {
         removeBold: $("remove-bold")?.checked || false,
         removeItalic: $("remove-italic")?.checked || false,
@@ -347,7 +369,11 @@
 
     const runCleanCommand = preset => {
         const settings = getSettings(preset);
-        Asc.scope.settings = settings;
+        
+        if (!window.Asc) window.Asc = {};
+        if (!window.Asc.scope) window.Asc.scope = {};
+        
+        window.Asc.scope.settings = settings;
 
         if (!originalState) {
             originalState = "saved";
@@ -365,9 +391,9 @@
         });
 
         // Apply special handlers
-        if (settings.removeBgOutline) specialHandlers.removeBgOutline();
-        specialHandlers.applyFontStandardization(settings);
-        specialHandlers.textCaseConversion(settings.textCaseOption);
+        if (settings.removeBgOutline) removeBgOutline();
+        applyFontStandardization(settings);
+        applyTextCaseConversion(settings.textCaseOption);
         
         console.log("All text cleaning operations completed");
     };
@@ -415,9 +441,12 @@
                 resetToMainView();
                 return;
             }
-            window.Asc.plugin.executeMethod("Undo", null, () => {
-                setTimeout(() => performUndo(stepsRemaining - 1), 100);
-            });
+            
+            if (window.Asc && window.Asc.plugin && window.Asc.plugin.executeMethod) {
+                window.Asc.plugin.executeMethod("Undo", null, () => {
+                    setTimeout(() => performUndo(stepsRemaining - 1), 100);
+                });
+            }
         };
         performUndo(undoCount);
     };
@@ -454,7 +483,6 @@
             });
         }
 
-        // Clean button
         const cleanBtn = $('clean-button');
         if (cleanBtn) {
             cleanBtn.addEventListener('click', () => {
@@ -463,7 +491,6 @@
             });
         }
 
-        // Accordion toggle
         document.querySelectorAll('.acc-head').forEach(btn => {
             btn.addEventListener('click', () => {
                 const target = document.querySelector(btn.dataset.target);
@@ -474,7 +501,6 @@
                 if (chevron) chevron.style.transform = `rotate(${isOpen ? '0' : '180'}deg)`;
             });
             
-            // Set initial chevron state
             const target = document.querySelector(btn.dataset.target);
             const chevron = btn.querySelector('.chevron');
             if (target && chevron) {
@@ -483,7 +509,7 @@
         });
     };
 
-    // Context menu functionality
+    // Context menu actions - tek satırda tanımlama
     const contextMenuActions = {
         removeBoldCtx: () => runCleanCommand({ removeBold: true }),
         removeItalicCtx: () => runCleanCommand({ removeItalic: true }),
@@ -505,62 +531,105 @@
         resetBaselineCtx: () => runCleanCommand({ resetBaseline: true })
     };
 
-    window.Asc.plugin.init = function() {
-        console.log("TextCleaner plugin initialized");
-        setTimeout(() => {
-            refreshButtonState();
-            setInterval(refreshButtonState, 1500);
-        }, 100);
+    const initializeAscStructure = () => {
+        if (!window.Asc) {
+            window.Asc = {};
+        }
+        if (!window.Asc.plugin) {
+            window.Asc.plugin = {};
+        }
+        if (!window.Asc.scope) {
+            window.Asc.scope = {};
+        }
     };
 
-    window.Asc.plugin.button = id => {
-        if (id === 0) runCleanCommand();
-        else window.Asc.plugin.executeCommand("close", "");
-    };
-
-    window.Asc.plugin.onTranslate = () => {
-        if (!$("PluginInstructions")) return;
+    const setupPlugin = () => {
+        initializeAscStructure();
         
-        const setTr = idKey => {
-            const el = $(idKey);
-            if (el) el.innerHTML = tr(idKey);
-        };
+        if (!window.Asc.plugin.init) {
+            window.Asc.plugin.init = function() {
+                console.log("TextCleaner plugin initialized");
+                setTimeout(() => {
+                    refreshButtonState();
+                    setInterval(refreshButtonState, 1500);
+                }, 100);
+            };
+        }
 
-        const addChevron = id => {
-            const head = $(id);
-            if (!head) return;
-            head.innerHTML = tr(id);
-            const img = document.createElement('img');
-            img.src = 'resources/light/chevron-down.svg';
-            img.className = 'chevron';
-            img.style.cssText = 'width:6px; float:right; transition:transform 0.2s';
-            head.appendChild(img);
-        };
+        if (!window.Asc.plugin.button) {
+            window.Asc.plugin.button = id => {
+                if (id === 0) runCleanCommand();
+                else if (window.Asc.plugin.executeCommand) {
+                    window.Asc.plugin.executeCommand("close", "");
+                }
+            };
+        }
 
-        ['PluginInstructions', 'AllParameters', 'RemoveBold', 'RemoveItalic', 'RemoveUnderline', 
-         'RemoveStrikeout', 'ClearTextColor', 'RemoveHighlight', 'RemoveBgOutline', 'ApplyFontStandardization',
-         'NormalizeSpaces', 'NormalizeNumbers', 'ResetLetterSpacing', 'ResetVertOffset', 'FixCasing',
-         'DisableAllCaps', 'DisableSmallCaps', 'ResetBaseline', 'clean-button', 'CaseNone', 'SentenceCase',
-         'LowerCase', 'UpperCase', 'CapitalizeEach', 'ToggleCase', 'CleaningCompleted', 'OperationsApplied',
-         'RevertToOriginal', 'NewClean', 'DoNotClosePanel', 'Loading'].forEach(setTr);
+        if (!window.Asc.plugin.onTranslate) {
+            window.Asc.plugin.onTranslate = () => {
+                if (!$("PluginInstructions")) return;
+                
+                const setTr = idKey => {
+                    const el = $(idKey);
+                    if (el) el.innerHTML = tr(idKey);
+                };
 
-        ['ClearFormatting', 'FontStandardization', 'TextCaseConversion', 'SpecialFormatting'].forEach(addChevron);
-    };
+                const addChevron = id => {
+                    const head = $(id);
+                    if (!head) return;
+                    head.innerHTML = tr(id);
+                    const img = document.createElement('img');
+                    img.src = 'resources/light/chevron-down.svg';
+                    img.className = 'chevron';
+                    img.style.cssText = 'width:6px; float:right; transition:transform 0.2s';
+                    head.appendChild(img);
+                };
 
-    window.Asc.plugin.event_onContextMenuShow = options => {
-        if (!options) return;
-        
-        const contextItems = getContextItems().map(item => ({
-            ...item,
-            text: tr(item.text),
-            icons: getThemeIcon(), 
-            items: item.items ? translateContextItems(item.items) : undefined
-        }));
-        
-        window.Asc.plugin.executeMethod("AddContextMenuItem", [{
-            guid: window.Asc.plugin.guid,
-            items: contextItems
-        }]);
+                ['PluginInstructions', 'AllParameters', 'RemoveBold', 'RemoveItalic', 'RemoveUnderline', 
+                 'RemoveStrikeout', 'ClearTextColor', 'RemoveHighlight', 'RemoveBgOutline', 'ApplyFontStandardization',
+                 'NormalizeSpaces', 'NormalizeNumbers', 'ResetLetterSpacing', 'ResetVertOffset', 'FixCasing',
+                 'DisableAllCaps', 'DisableSmallCaps', 'ResetBaseline', 'clean-button', 'CaseNone', 'SentenceCase',
+                 'LowerCase', 'UpperCase', 'CapitalizeEach', 'ToggleCase', 'CleaningCompleted', 'OperationsApplied',
+                 'RevertToOriginal', 'NewClean', 'DoNotClosePanel', 'Loading'].forEach(setTr);
+
+                ['ClearFormatting', 'FontStandardization', 'TextCaseConversion', 'SpecialFormatting'].forEach(addChevron);
+            };
+        }
+
+        if (!window.Asc.plugin.event_onContextMenuShow) {
+            window.Asc.plugin.event_onContextMenuShow = options => {
+                if (!options) return;
+                
+                const contextItems = getContextItems().map(item => ({
+                    ...item,
+                    text: tr(item.text),
+                    icons: getThemeIcon(), 
+                    items: item.items ? translateContextItems(item.items) : undefined
+                }));
+                
+                if (window.Asc.plugin.executeMethod) {
+                    window.Asc.plugin.executeMethod("AddContextMenuItem", [{
+                        guid: window.Asc.plugin.guid,
+                        items: contextItems
+                    }]);
+                }
+            };
+        }
+
+        if (!window.Asc.plugin.event_onContextMenuClick) {
+            window.Asc.plugin.event_onContextMenuClick = id => {
+                const itemId = id.split("_oo_sep_")[0];
+                if (contextMenuActions[itemId]) contextMenuActions[itemId]();
+            };
+        }
+
+        if (!window.Asc.plugin.event_onDocumentContentReady) {
+            window.Asc.plugin.event_onDocumentContentReady = refreshButtonState;
+        }
+
+        if (!window.Asc.plugin.event_onTargetChanged) {
+            window.Asc.plugin.event_onTargetChanged = refreshButtonState;
+        }
     };
 
     const translateContextItems = items => items.map(item => ({
@@ -569,14 +638,23 @@
         items: item.items ? translateContextItems(item.items) : undefined
     }));
 
-    window.Asc.plugin.event_onContextMenuClick = id => {
-        const itemId = id.split("_oo_sep_")[0];
-        if (contextMenuActions[itemId]) contextMenuActions[itemId]();
+    const waitForPlugin = () => {
+        if (window.Asc && window.Asc.plugin && typeof window.Asc.plugin === 'object') {
+            setupPlugin();
+        } else {
+            setTimeout(waitForPlugin, 50);
+        }
     };
 
-    window.Asc.plugin.event_onDocumentContentReady = refreshButtonState;
-    window.Asc.plugin.event_onTargetChanged = refreshButtonState;
+    document.addEventListener('DOMContentLoaded', () => {
+        onDomReady();
+        waitForPlugin();
+    });
 
-    document.addEventListener('DOMContentLoaded', onDomReady);
+    if (document.readyState === 'loading') {
+    } else {
+        onDomReady();
+        waitForPlugin();
+    }
 
 })(window);
