@@ -78,24 +78,19 @@
             console.log('Theme detection failed, using light theme icon');
         }
         
-        
         return 'resources/light/icon.svg';
     }
 
-    // Utility functions
     const $ = id => document.getElementById(id);
     
-    // Improved translation function that falls back to English for unsupported languages
     const tr = key => {
         try {
             if (window.Asc && window.Asc.plugin && typeof window.Asc.plugin.tr === 'function') {
                 const translation = window.Asc.plugin.tr(key);
                 
-                
                 if (translation && translation !== key) {
                     return translation;
                 }
-                
                 
                 return getEnglishFallback(key);
             }
@@ -106,7 +101,6 @@
         return getEnglishFallback(key);
     };
     
-    // English fallback translations for unsupported languages
     const getEnglishFallback = key => {
         const englishTranslations = {
             "TextCleaner": "Text Cleaner",
@@ -148,13 +142,20 @@
         return englishTranslations[key] || key;
     };
     
-    const callCommand = (func, callback) => window.Asc.plugin.callCommand(func, false, true, callback);
+    const callCommand = (func, callback) => {
+        if (window.Asc && window.Asc.plugin && window.Asc.plugin.callCommand) {
+            window.Asc.plugin.callCommand(func, false, true, callback);
+        } else {
+            console.error('Asc.plugin.callCommand is not available');
+        }
+    };
 
-    // Generic text property applier
     const applyTextProp = (method, value) => {
-        // Store in global scope for callCommand access
-        Asc.scope.currentMethod = method;
-        Asc.scope.currentValue = value;
+        if (!window.Asc) window.Asc = {};
+        if (!window.Asc.scope) window.Asc.scope = {};
+        
+        window.Asc.scope.currentMethod = method;
+        window.Asc.scope.currentValue = value;
         
         callCommand(() => {
             const doc = Api.GetDocument();
@@ -218,8 +219,11 @@
         applyFontStandardization: settings => {
             if (!settings.applyFontStandardization || (!settings.targetFontFamily && !settings.targetFontSize)) return;
             
-            Asc.scope.targetFontFamily = settings.targetFontFamily;
-            Asc.scope.targetFontSize = settings.targetFontSize;
+            if (!window.Asc) window.Asc = {};
+            if (!window.Asc.scope) window.Asc.scope = {};
+            
+            window.Asc.scope.targetFontFamily = settings.targetFontFamily;
+            window.Asc.scope.targetFontSize = settings.targetFontSize;
             
             callCommand(() => {
                 const doc = Api.GetDocument();
@@ -244,7 +248,10 @@
         textCaseConversion: caseOption => {
             if (caseOption === "none") return;
         
-            Asc.scope.textCaseOption = caseOption;
+            if (!window.Asc) window.Asc = {};
+            if (!window.Asc.scope) window.Asc.scope = {};
+            
+            window.Asc.scope.textCaseOption = caseOption;
         
             callCommand(() => {
                 const doc = Api.GetDocument();
@@ -347,24 +354,25 @@
 
     const runCleanCommand = preset => {
         const settings = getSettings(preset);
-        Asc.scope.settings = settings;
+        
+        if (!window.Asc) window.Asc = {};
+        if (!window.Asc.scope) window.Asc.scope = {};
+        
+        window.Asc.scope.settings = settings;
 
         if (!originalState) {
             originalState = "saved";
         }
         undoCount = 0;
 
-        // Auto-adjust case conversion for caps options
         if ((settings.disableAllCaps || settings.disableSmallCaps) && settings.textCaseOption === "none") {
             settings.textCaseOption = "lower";
         }
 
-        // Apply standard text properties
         Object.entries(CONFIG).forEach(([key, config]) => {
             if (settings[key]) applyTextProp(config.method, config.value);
         });
 
-        // Apply special handlers
         if (settings.removeBgOutline) specialHandlers.removeBgOutline();
         specialHandlers.applyFontStandardization(settings);
         specialHandlers.textCaseConversion(settings.textCaseOption);
@@ -415,9 +423,12 @@
                 resetToMainView();
                 return;
             }
-            window.Asc.plugin.executeMethod("Undo", null, () => {
-                setTimeout(() => performUndo(stepsRemaining - 1), 100);
-            });
+            
+            if (window.Asc && window.Asc.plugin && window.Asc.plugin.executeMethod) {
+                window.Asc.plugin.executeMethod("Undo", null, () => {
+                    setTimeout(() => performUndo(stepsRemaining - 1), 100);
+                });
+            }
         };
         performUndo(undoCount);
     };
@@ -454,7 +465,6 @@
             });
         }
 
-        // Clean button
         const cleanBtn = $('clean-button');
         if (cleanBtn) {
             cleanBtn.addEventListener('click', () => {
@@ -463,7 +473,6 @@
             });
         }
 
-        // Accordion toggle
         document.querySelectorAll('.acc-head').forEach(btn => {
             btn.addEventListener('click', () => {
                 const target = document.querySelector(btn.dataset.target);
@@ -474,7 +483,6 @@
                 if (chevron) chevron.style.transform = `rotate(${isOpen ? '0' : '180'}deg)`;
             });
             
-            // Set initial chevron state
             const target = document.querySelector(btn.dataset.target);
             const chevron = btn.querySelector('.chevron');
             if (target && chevron) {
@@ -483,7 +491,6 @@
         });
     };
 
-    // Context menu functionality
     const contextMenuActions = {
         removeBoldCtx: () => runCleanCommand({ removeBold: true }),
         removeItalicCtx: () => runCleanCommand({ removeItalic: true }),
@@ -505,62 +512,105 @@
         resetBaselineCtx: () => runCleanCommand({ resetBaseline: true })
     };
 
-    window.Asc.plugin.init = function() {
-        console.log("TextCleaner plugin initialized");
-        setTimeout(() => {
-            refreshButtonState();
-            setInterval(refreshButtonState, 1500);
-        }, 100);
+    const initializeAscStructure = () => {
+        if (!window.Asc) {
+            window.Asc = {};
+        }
+        if (!window.Asc.plugin) {
+            window.Asc.plugin = {};
+        }
+        if (!window.Asc.scope) {
+            window.Asc.scope = {};
+        }
     };
 
-    window.Asc.plugin.button = id => {
-        if (id === 0) runCleanCommand();
-        else window.Asc.plugin.executeCommand("close", "");
-    };
-
-    window.Asc.plugin.onTranslate = () => {
-        if (!$("PluginInstructions")) return;
+    const setupPlugin = () => {
+        initializeAscStructure();
         
-        const setTr = idKey => {
-            const el = $(idKey);
-            if (el) el.innerHTML = tr(idKey);
-        };
+        if (!window.Asc.plugin.init) {
+            window.Asc.plugin.init = function() {
+                console.log("TextCleaner plugin initialized");
+                setTimeout(() => {
+                    refreshButtonState();
+                    setInterval(refreshButtonState, 1500);
+                }, 100);
+            };
+        }
 
-        const addChevron = id => {
-            const head = $(id);
-            if (!head) return;
-            head.innerHTML = tr(id);
-            const img = document.createElement('img');
-            img.src = 'resources/light/chevron-down.svg';
-            img.className = 'chevron';
-            img.style.cssText = 'width:6px; float:right; transition:transform 0.2s';
-            head.appendChild(img);
-        };
+        if (!window.Asc.plugin.button) {
+            window.Asc.plugin.button = id => {
+                if (id === 0) runCleanCommand();
+                else if (window.Asc.plugin.executeCommand) {
+                    window.Asc.plugin.executeCommand("close", "");
+                }
+            };
+        }
 
-        ['PluginInstructions', 'AllParameters', 'RemoveBold', 'RemoveItalic', 'RemoveUnderline', 
-         'RemoveStrikeout', 'ClearTextColor', 'RemoveHighlight', 'RemoveBgOutline', 'ApplyFontStandardization',
-         'NormalizeSpaces', 'NormalizeNumbers', 'ResetLetterSpacing', 'ResetVertOffset', 'FixCasing',
-         'DisableAllCaps', 'DisableSmallCaps', 'ResetBaseline', 'clean-button', 'CaseNone', 'SentenceCase',
-         'LowerCase', 'UpperCase', 'CapitalizeEach', 'ToggleCase', 'CleaningCompleted', 'OperationsApplied',
-         'RevertToOriginal', 'NewClean', 'DoNotClosePanel', 'Loading'].forEach(setTr);
+        if (!window.Asc.plugin.onTranslate) {
+            window.Asc.plugin.onTranslate = () => {
+                if (!$("PluginInstructions")) return;
+                
+                const setTr = idKey => {
+                    const el = $(idKey);
+                    if (el) el.innerHTML = tr(idKey);
+                };
 
-        ['ClearFormatting', 'FontStandardization', 'TextCaseConversion', 'SpecialFormatting'].forEach(addChevron);
-    };
+                const addChevron = id => {
+                    const head = $(id);
+                    if (!head) return;
+                    head.innerHTML = tr(id);
+                    const img = document.createElement('img');
+                    img.src = 'resources/light/chevron-down.svg';
+                    img.className = 'chevron';
+                    img.style.cssText = 'width:6px; float:right; transition:transform 0.2s';
+                    head.appendChild(img);
+                };
 
-    window.Asc.plugin.event_onContextMenuShow = options => {
-        if (!options) return;
-        
-        const contextItems = getContextItems().map(item => ({
-            ...item,
-            text: tr(item.text),
-            icons: getThemeIcon(), 
-            items: item.items ? translateContextItems(item.items) : undefined
-        }));
-        
-        window.Asc.plugin.executeMethod("AddContextMenuItem", [{
-            guid: window.Asc.plugin.guid,
-            items: contextItems
-        }]);
+                ['PluginInstructions', 'AllParameters', 'RemoveBold', 'RemoveItalic', 'RemoveUnderline', 
+                 'RemoveStrikeout', 'ClearTextColor', 'RemoveHighlight', 'RemoveBgOutline', 'ApplyFontStandardization',
+                 'NormalizeSpaces', 'NormalizeNumbers', 'ResetLetterSpacing', 'ResetVertOffset', 'FixCasing',
+                 'DisableAllCaps', 'DisableSmallCaps', 'ResetBaseline', 'clean-button', 'CaseNone', 'SentenceCase',
+                 'LowerCase', 'UpperCase', 'CapitalizeEach', 'ToggleCase', 'CleaningCompleted', 'OperationsApplied',
+                 'RevertToOriginal', 'NewClean', 'DoNotClosePanel', 'Loading'].forEach(setTr);
+
+                ['ClearFormatting', 'FontStandardization', 'TextCaseConversion', 'SpecialFormatting'].forEach(addChevron);
+            };
+        }
+
+        if (!window.Asc.plugin.event_onContextMenuShow) {
+            window.Asc.plugin.event_onContextMenuShow = options => {
+                if (!options) return;
+                
+                const contextItems = getContextItems().map(item => ({
+                    ...item,
+                    text: tr(item.text),
+                    icons: getThemeIcon(), 
+                    items: item.items ? translateContextItems(item.items) : undefined
+                }));
+                
+                if (window.Asc.plugin.executeMethod) {
+                    window.Asc.plugin.executeMethod("AddContextMenuItem", [{
+                        guid: window.Asc.plugin.guid,
+                        items: contextItems
+                    }]);
+                }
+            };
+        }
+
+        if (!window.Asc.plugin.event_onContextMenuClick) {
+            window.Asc.plugin.event_onContextMenuClick = id => {
+                const itemId = id.split("_oo_sep_")[0];
+                if (contextMenuActions[itemId]) contextMenuActions[itemId]();
+            };
+        }
+
+        if (!window.Asc.plugin.event_onDocumentContentReady) {
+            window.Asc.plugin.event_onDocumentContentReady = refreshButtonState;
+        }
+
+        if (!window.Asc.plugin.event_onTargetChanged) {
+            window.Asc.plugin.event_onTargetChanged = refreshButtonState;
+        }
     };
 
     const translateContextItems = items => items.map(item => ({
@@ -569,14 +619,23 @@
         items: item.items ? translateContextItems(item.items) : undefined
     }));
 
-    window.Asc.plugin.event_onContextMenuClick = id => {
-        const itemId = id.split("_oo_sep_")[0];
-        if (contextMenuActions[itemId]) contextMenuActions[itemId]();
+    const waitForPlugin = () => {
+        if (window.Asc && window.Asc.plugin && typeof window.Asc.plugin === 'object') {
+            setupPlugin();
+        } else {
+            setTimeout(waitForPlugin, 50);
+        }
     };
 
-    window.Asc.plugin.event_onDocumentContentReady = refreshButtonState;
-    window.Asc.plugin.event_onTargetChanged = refreshButtonState;
+    document.addEventListener('DOMContentLoaded', () => {
+        onDomReady();
+        waitForPlugin();
+    });
 
-    document.addEventListener('DOMContentLoaded', onDomReady);
+    if (document.readyState === 'loading') {
+    } else {
+        onDomReady();
+        waitForPlugin();
+    }
 
 })(window);
