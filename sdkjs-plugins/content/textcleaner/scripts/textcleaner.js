@@ -416,6 +416,13 @@
         }
         undoCount = 0;
 
+        if (settings.disableAllCaps ) {
+            settings.textCaseOption = "lower";
+        }
+        if (settings.disableSmallCaps ) {
+            settings.textCaseOption = "toggle";
+        }
+
         Object.entries(CONFIG).forEach(([key, config]) => {
             if (settings[key]) applyTextProp(config.method, config.value);
         });
@@ -624,6 +631,7 @@
             };
         }
 
+        if (!window.Asc.plugin.event_onContextMenuShow) {
             window.Asc.plugin.event_onContextMenuShow = options => {
                 if (!options) return;
                 
@@ -641,12 +649,14 @@
                     }]);
                 }
             };
-        
+        }
 
-        window.Asc.plugin.event_onContextMenuClick = id => {
-            const itemId = id.split("_oo_sep_")[0];
-            if (contextMenuActions[itemId]) contextMenuActions[itemId]();
-        };
+        if (!window.Asc.plugin.event_onContextMenuClick) {
+            window.Asc.plugin.event_onContextMenuClick = id => {
+                const itemId = id.split("_oo_sep_")[0];
+                if (contextMenuActions[itemId]) contextMenuActions[itemId]();
+            };
+        }
 
         if (!window.Asc.plugin.event_onDocumentContentReady) {
             window.Asc.plugin.event_onDocumentContentReady = refreshButtonState;
