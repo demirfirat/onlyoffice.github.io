@@ -269,15 +269,82 @@
                         convertCase = t => t;
                 }
         
-                const processParagraphs = paragraphs => {
-                    for (let i = 0; i < paragraphs.length; i++) {
-                        const para = paragraphs[i];
+                const hasSelection = range && range.GetText && range.GetText().trim() !== "";
+                
+                if (hasSelection) {
+                    const selectedText = range.GetText();
+                    const convertedText = convertCase(selectedText);
+                    
+                    if (convertedText !== selectedText) {
+                        const paragraphs = range.GetAllParagraphs();
                         
+                        for (let p = 0; p < paragraphs.length; p++) {
+                            const para = paragraphs[p];
+                            if (!para.GetElementsCount) continue;
+                            
+                            const elemCount = para.GetElementsCount();
+                            let runs = [];
+                            let fullText = "";
+                            
+                            for (let j = 0; j < elemCount; j++) {
+                                const elem = para.GetElement(j);
+                                if (elem.GetText) {
+                                    const text = elem.GetText();
+                                    if (text) {
+                                        fullText += text;
+                                        runs.push({ 
+                                            element: elem, 
+                                            text: text, 
+                                            length: text.length,
+                                            textPr: elem.GetTextPr ? elem.GetTextPr() : null
+                                        });
+                                    }
+                                }
+                            }
+                            
+                            const paraText = para.GetText ? para.GetText() : fullText;
+                            const selectionStart = paraText.indexOf(selectedText);
+                            
+                            if (selectionStart !== -1) {
+                                const selectionEnd = selectionStart + selectedText.length;
+                                const newFullText = paraText.substring(0, selectionStart) + 
+                                                   convertedText + 
+                                                   paraText.substring(selectionEnd);
+                                
+                                para.RemoveAllElements();
+                                
+                                let charPos = 0;
+                                for (let k = 0; k < runs.length; k++) {
+                                    const run = runs[k];
+                                    const runStart = charPos;
+                                    const runEnd = charPos + run.length;
+                                    
+                                    const newRunText = newFullText.substring(runStart, runEnd);
+                                    
+                                    if (newRunText) {
+                                        const newRun = Api.CreateRun();
+                                        if (run.textPr) {
+                                            newRun.SetTextPr(run.textPr);
+                                        }
+                                        newRun.AddText(newRunText);
+                                        para.AddElement(newRun);
+                                    }
+                                    
+                                    charPos += run.length;
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    const allParas = doc.GetAllParagraphs();
+                    
+                    for (let i = 0; i < allParas.length; i++) {
+                        const para = allParas[i];
                         if (!para.GetElementsCount) continue;
         
                         const elementsCount = para.GetElementsCount();
-                        let fullText = "";
                         let runs = [];
+                        let fullText = "";
         
                         for (let j = 0; j < elementsCount; j++) {
                             const elem = para.GetElement(j);
@@ -291,13 +358,12 @@
                         }
                         
                         if (fullText.trim() === "") continue;
-        
                         const newFullText = convertCase(fullText);
         
                         if (newFullText !== fullText) {
                             para.RemoveAllElements();
                             let currentPos = 0;
-                            for(let k = 0; k < runs.length; k++) {
+                            for (let k = 0; k < runs.length; k++) {
                                 const run = runs[k];
                                 const newRunText = newFullText.substring(currentPos, currentPos + run.length);
                                 const newRun = Api.CreateRun();
@@ -311,12 +377,6 @@
                             }
                         }
                     }
-                };
-        
-                if (range && range.GetText && range.GetText().trim() !== "") {
-                    processParagraphs(range.GetAllParagraphs());
-                } else {
-                    processParagraphs(doc.GetAllParagraphs());
                 }
             });
             undoCount++;
