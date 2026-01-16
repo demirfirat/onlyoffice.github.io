@@ -1,5 +1,5 @@
 ((window) => {
-    
+
     let originalState = null, hasCleanedDoc = false, undoCount = 0;
 
     const CONFIG = {
@@ -15,39 +15,47 @@
         disableSmallCaps: { method: 'SetSmallCaps', value: false },
         resetBaseline: { method: 'SetVertAlign', value: 'baseline' }
     };
-   
+
     const getContextItems = () => [
-        { 
-            id: 'textCleaner', 
-            text: 'TextCleanerMenuTitle', 
-            icons: getThemeIcon(), 
+        {
+            id: 'textCleaner',
+            text: 'TextCleanerMenuTitle',
+            icons: getThemeIcon(),
             items: [
-                { id: 'clearFormattingCtx', text: 'ClearFormatting', items: [
-                    { id: 'removeBoldCtx', text: 'RemoveBold' },
-                    { id: 'removeItalicCtx', text: 'RemoveItalic' },
-                    { id: 'removeUnderlineCtx', text: 'RemoveUnderline' },
-                    { id: 'removeStrikeoutCtx', text: 'RemoveStrikeout' },
-                    { id: 'clearTextColorCtx', text: 'ClearTextColor' },
-                    { id: 'removeHighlightCtx', text: 'RemoveHighlight' },
-                    { id: 'removeBgOutlineCtx', text: 'RemoveBgOutline' }
-                ]},
-                { id: 'fontStandardizationCtx', text: 'FontStandardization', items: [
-                    { id: 'resetLetterSpacingCtx', text: 'ResetLetterSpacing' },
-                    { id: 'resetVertOffsetCtx', text: 'ResetVertOffset' }
-                ]},
-                { id: 'textCaseConversionCtx', text: 'TextCaseConversion', items: [
-                    { id: 'doNotChangeCaseCtx', text: 'CaseNone' },
-                    { id: 'sentenceCaseCtx', text: 'SentenceCase' },
-                    { id: 'lowerCaseCtx', text: 'LowerCase' },
-                    { id: 'upperCaseCtx', text: 'UpperCase' },
-                    { id: 'capitalizeEachWordCtx', text: 'CapitalizeEach' },
-                    { id: 'toggleCaseCtx', text: 'ToggleCase' }
-                ]},
-                { id: 'specialFormattingCtx', text: 'SpecialFormatting', items: [
-                    { id: 'disableAllCapsCtx', text: 'DisableAllCaps' },
-                    { id: 'disableSmallCapsCtx', text: 'DisableSmallCaps' },
-                    { id: 'resetBaselineCtx', text: 'ResetBaseline' }
-                ]}
+                {
+                    id: 'clearFormattingCtx', text: 'ClearFormatting', items: [
+                        { id: 'removeBoldCtx', text: 'RemoveBold' },
+                        { id: 'removeItalicCtx', text: 'RemoveItalic' },
+                        { id: 'removeUnderlineCtx', text: 'RemoveUnderline' },
+                        { id: 'removeStrikeoutCtx', text: 'RemoveStrikeout' },
+                        { id: 'clearTextColorCtx', text: 'ClearTextColor' },
+                        { id: 'removeHighlightCtx', text: 'RemoveHighlight' },
+                        { id: 'removeBgOutlineCtx', text: 'RemoveBgOutline' }
+                    ]
+                },
+                {
+                    id: 'fontStandardizationCtx', text: 'FontStandardization', items: [
+                        { id: 'resetLetterSpacingCtx', text: 'ResetLetterSpacing' },
+                        { id: 'resetVertOffsetCtx', text: 'ResetVertOffset' }
+                    ]
+                },
+                {
+                    id: 'textCaseConversionCtx', text: 'TextCaseConversion', items: [
+                        { id: 'doNotChangeCaseCtx', text: 'CaseNone' },
+                        { id: 'sentenceCaseCtx', text: 'SentenceCase' },
+                        { id: 'lowerCaseCtx', text: 'LowerCase' },
+                        { id: 'upperCaseCtx', text: 'UpperCase' },
+                        { id: 'capitalizeEachWordCtx', text: 'CapitalizeEach' },
+                        { id: 'toggleCaseCtx', text: 'ToggleCase' }
+                    ]
+                },
+                {
+                    id: 'specialFormattingCtx', text: 'SpecialFormatting', items: [
+                        { id: 'disableAllCapsCtx', text: 'DisableAllCaps' },
+                        { id: 'disableSmallCapsCtx', text: 'DisableSmallCaps' },
+                        { id: 'resetBaselineCtx', text: 'ResetBaseline' }
+                    ]
+                }
             ]
         }
     ];
@@ -58,40 +66,40 @@
                 const theme = window.Asc.plugin.info.theme;
                 return theme.type === 'dark' ? 'resources/dark/icon.svg' : 'resources/light/icon.svg';
             }
-            
+
             if (document && document.body) {
-                const isDark = document.body.classList.contains('theme-dark') || 
-                              getComputedStyle(document.documentElement).getPropertyValue('--theme-type') === 'dark';
-                
+                const isDark = document.body.classList.contains('theme-dark') ||
+                    getComputedStyle(document.documentElement).getPropertyValue('--theme-type') === 'dark';
+
                 return isDark ? 'resources/dark/icon.svg' : 'resources/light/icon.svg';
             }
         } catch (error) {
             console.log('Theme detection failed, using light theme icon');
         }
-        
+
         return 'resources/light/icon.svg';
     }
 
     const $ = id => document.getElementById(id);
-    
+
     const tr = key => {
         try {
             if (window.Asc && window.Asc.plugin && typeof window.Asc.plugin.tr === 'function') {
                 const translation = window.Asc.plugin.tr(key);
-                
+
                 if (translation && translation !== key) {
                     return translation;
                 }
-                
+
                 return getEnglishFallback(key);
             }
         } catch (e) {
             console.log('Translation function failed, using fallback:', e);
         }
-        
+
         return getEnglishFallback(key);
     };
-    
+
     const getEnglishFallback = key => {
         const englishTranslations = {
             "TextCleaner": "Text Cleaner",
@@ -129,10 +137,10 @@
             "DoNotClosePanel": "Please do not close the plugin panel.",
             "Loading": "Loading..."
         };
-        
+
         return englishTranslations[key] || key;
     };
-    
+
     const callCommand = (func, callback) => {
         if (window.Asc && window.Asc.plugin && window.Asc.plugin.callCommand) {
             window.Asc.plugin.callCommand(func, false, true, callback);
@@ -144,15 +152,15 @@
     const applyTextProp = (method, value) => {
         if (!window.Asc) window.Asc = {};
         if (!window.Asc.scope) window.Asc.scope = {};
-        
+
         window.Asc.scope.currentMethod = method;
         window.Asc.scope.currentValue = value;
-        
+
         callCommand(() => {
             const doc = Api.GetDocument();
             const range = doc.GetRangeBySelect();
             const textPr = Api.CreateTextPr();
-            
+
             if (Array.isArray(Asc.scope.currentValue)) {
                 textPr[Asc.scope.currentMethod](...Asc.scope.currentValue);
             } else {
@@ -178,7 +186,7 @@
                 const doc = Api.GetDocument();
                 const range = doc.GetRangeBySelect();
                 const noStroke = Api.CreateStroke(0, Api.CreateSolidFill(Api.CreateRGBColor(0, 0, 0)));
-                
+
                 const processItems = items => {
                     for (let i = 0; i < items.length; i++) {
                         const item = items[i];
@@ -186,7 +194,7 @@
                         const textPr = Api.CreateTextPr();
                         textPr.SetOutLine(noStroke);
                         item.SetTextPr(textPr);
-                        
+
                         const paraPr = item.GetParaPr && item.GetParaPr();
                         if (paraPr) {
                             paraPr.SetLeftBorder("none", 0, 0, 0, 0, 0);
@@ -209,18 +217,18 @@
 
         applyFontStandardization: settings => {
             if (!settings.applyFontStandardization || (!settings.targetFontFamily && !settings.targetFontSize)) return;
-            
+
             if (!window.Asc) window.Asc = {};
             if (!window.Asc.scope) window.Asc.scope = {};
-            
+
             window.Asc.scope.targetFontFamily = settings.targetFontFamily;
             window.Asc.scope.targetFontSize = settings.targetFontSize;
-            
+
             callCommand(() => {
                 const doc = Api.GetDocument();
                 const range = doc.GetRangeBySelect();
                 const textPr = Api.CreateTextPr();
-                
+
                 if (Asc.scope.targetFontFamily) textPr.SetFontFamily(Asc.scope.targetFontFamily);
                 if (Asc.scope.targetFontSize) textPr.SetFontSize(Asc.scope.targetFontSize * 2);
 
@@ -238,16 +246,16 @@
 
         textCaseConversion: caseOption => {
             if (caseOption === "none") return;
-        
+
             if (!window.Asc) window.Asc = {};
             if (!window.Asc.scope) window.Asc.scope = {};
-            
+
             window.Asc.scope.textCaseOption = caseOption;
-        
+
             callCommand(() => {
                 const doc = Api.GetDocument();
                 const range = doc.GetRangeBySelect();
-                
+
                 let convertCase;
                 switch (Asc.scope.textCaseOption) {
                     case "upper":
@@ -268,59 +276,59 @@
                     default:
                         convertCase = t => t;
                 }
-        
+
                 const hasSelection = range && range.GetText && range.GetText().trim() !== "";
-                
+
                 if (hasSelection) {
                     const selectedText = range.GetText();
                     const convertedText = convertCase(selectedText);
-                    
+
                     if (convertedText !== selectedText) {
                         const paragraphs = range.GetAllParagraphs();
-                        
+
                         for (let p = 0; p < paragraphs.length; p++) {
                             const para = paragraphs[p];
                             if (!para.GetElementsCount) continue;
-                            
+
                             const elemCount = para.GetElementsCount();
                             let runs = [];
                             let fullText = "";
-                            
+
                             for (let j = 0; j < elemCount; j++) {
                                 const elem = para.GetElement(j);
                                 if (elem.GetText) {
                                     const text = elem.GetText();
                                     if (text) {
                                         fullText += text;
-                                        runs.push({ 
-                                            element: elem, 
-                                            text: text, 
+                                        runs.push({
+                                            element: elem,
+                                            text: text,
                                             length: text.length,
                                             textPr: elem.GetTextPr ? elem.GetTextPr() : null
                                         });
                                     }
                                 }
                             }
-                            
+
                             const paraText = para.GetText ? para.GetText() : fullText;
                             const selectionStart = paraText.indexOf(selectedText);
-                            
+
                             if (selectionStart !== -1) {
                                 const selectionEnd = selectionStart + selectedText.length;
-                                const newFullText = paraText.substring(0, selectionStart) + 
-                                                   convertedText + 
-                                                   paraText.substring(selectionEnd);
-                                
+                                const newFullText = paraText.substring(0, selectionStart) +
+                                    convertedText +
+                                    paraText.substring(selectionEnd);
+
                                 para.RemoveAllElements();
-                                
+
                                 let charPos = 0;
                                 for (let k = 0; k < runs.length; k++) {
                                     const run = runs[k];
                                     const runStart = charPos;
                                     const runEnd = charPos + run.length;
-                                    
+
                                     const newRunText = newFullText.substring(runStart, runEnd);
-                                    
+
                                     if (newRunText) {
                                         const newRun = Api.CreateRun();
                                         if (run.textPr) {
@@ -329,7 +337,7 @@
                                         newRun.AddText(newRunText);
                                         para.AddElement(newRun);
                                     }
-                                    
+
                                     charPos += run.length;
                                 }
                             }
@@ -337,15 +345,15 @@
                     }
                 } else {
                     const allParas = doc.GetAllParagraphs();
-                    
+
                     for (let i = 0; i < allParas.length; i++) {
                         const para = allParas[i];
                         if (!para.GetElementsCount) continue;
-        
+
                         const elementsCount = para.GetElementsCount();
                         let runs = [];
                         let fullText = "";
-        
+
                         for (let j = 0; j < elementsCount; j++) {
                             const elem = para.GetElement(j);
                             if (elem.GetText) {
@@ -356,10 +364,10 @@
                                 }
                             }
                         }
-                        
+
                         if (fullText.trim() === "") continue;
                         const newFullText = convertCase(fullText);
-        
+
                         if (newFullText !== fullText) {
                             para.RemoveAllElements();
                             let currentPos = 0;
@@ -367,11 +375,11 @@
                                 const run = runs[k];
                                 const newRunText = newFullText.substring(currentPos, currentPos + run.length);
                                 const newRun = Api.CreateRun();
-                                
+
                                 const oldPr = run.element.GetTextPr();
                                 newRun.SetTextPr(oldPr);
                                 newRun.AddText(newRunText);
-                                
+
                                 para.AddElement(newRun);
                                 currentPos += run.length;
                             }
@@ -405,10 +413,10 @@
 
     const runCleanCommand = preset => {
         const settings = getSettings(preset);
-        
+
         if (!window.Asc) window.Asc = {};
         if (!window.Asc.scope) window.Asc.scope = {};
-        
+
         window.Asc.scope.settings = settings;
 
         if (!originalState) {
@@ -416,10 +424,10 @@
         }
         undoCount = 0;
 
-        if (settings.disableAllCaps ) {
+        if (settings.disableAllCaps) {
             settings.textCaseOption = "lower";
         }
-        if (settings.disableSmallCaps ) {
+        if (settings.disableSmallCaps) {
             settings.textCaseOption = "toggle";
         }
 
@@ -430,7 +438,7 @@
         if (settings.removeBgOutline) specialHandlers.removeBgOutline();
         specialHandlers.applyFontStandardization(settings);
         specialHandlers.textCaseConversion(settings.textCaseOption);
-        
+
         console.log("All text cleaning operations completed");
     };
 
@@ -461,14 +469,14 @@
     const setupActionHandlers = () => {
         const revert = $('revert-button');
         const newClean = $('new-clean-button');
-        
+
         if (revert) revert.onclick = revertToOriginal;
         if (newClean) newClean.onclick = resetToMainView;
     };
 
     const revertToOriginal = () => {
         if (!originalState || undoCount === 0) return;
-        
+
         const performUndo = stepsRemaining => {
             if (stepsRemaining <= 0) {
                 originalState = null;
@@ -477,7 +485,7 @@
                 resetToMainView();
                 return;
             }
-            
+
             if (window.Asc && window.Asc.plugin && window.Asc.plugin.executeMethod) {
                 window.Asc.plugin.executeMethod("Undo", null, () => {
                     setTimeout(() => performUndo(stepsRemaining - 1), 100);
@@ -495,7 +503,7 @@
     };
 
     const refreshButtonState = async () => {
-        const hasText = await new Promise(resolve => 
+        const hasText = await new Promise(resolve =>
             callCommand(() => {
                 const doc = Api.GetDocument();
                 return doc.GetText({ Numbering: false }).trim().length > 0;
@@ -514,7 +522,7 @@
         if (fontStd) fontStd.checked = false;
         if (selectAll) {
             selectAll.checked = true;
-            selectAll.addEventListener('change', function() {
+            selectAll.addEventListener('change', function () {
                 checkboxes.forEach(cb => cb.checked = this.checked);
             });
         }
@@ -536,7 +544,7 @@
                 const chevron = btn.querySelector('.chevron');
                 if (chevron) chevron.style.transform = `rotate(${isOpen ? '0' : '180'}deg)`;
             });
-            
+
             const target = document.querySelector(btn.dataset.target);
             const chevron = btn.querySelector('.chevron');
             if (target && chevron) {
@@ -580,14 +588,11 @@
 
     const setupPlugin = () => {
         initializeAscStructure();
-        
+
         if (!window.Asc.plugin.init) {
-            window.Asc.plugin.init = function() {
+            window.Asc.plugin.init = function () {
                 console.log("TextCleaner plugin initialized");
-                setTimeout(() => {
-                    refreshButtonState();
-                    setInterval(refreshButtonState, 1500);
-                }, 100);
+                refreshButtonState();
             };
         }
 
@@ -603,7 +608,7 @@
         if (!window.Asc.plugin.onTranslate) {
             window.Asc.plugin.onTranslate = () => {
                 if (!$("PluginInstructions")) return;
-                
+
                 const setTr = idKey => {
                     const el = $(idKey);
                     if (el) el.innerHTML = tr(idKey);
@@ -620,12 +625,12 @@
                     head.appendChild(img);
                 };
 
-                ['PluginInstructions', 'AllParameters', 'RemoveBold', 'RemoveItalic', 'RemoveUnderline', 
-                 'RemoveStrikeout', 'ClearTextColor', 'RemoveHighlight', 'RemoveBgOutline', 'ApplyFontStandardization',
-                 'NormalizeSpaces', 'NormalizeNumbers', 'ResetLetterSpacing', 'ResetVertOffset', 'FixCasing',
-                 'DisableAllCaps', 'DisableSmallCaps', 'ResetBaseline', 'clean-button', 'CaseNone', 'SentenceCase',
-                 'LowerCase', 'UpperCase', 'CapitalizeEach', 'ToggleCase', 'CleaningCompleted', 'OperationsApplied',
-                 'RevertToOriginal', 'NewClean', 'DoNotClosePanel', 'Loading'].forEach(setTr);
+                ['PluginInstructions', 'AllParameters', 'RemoveBold', 'RemoveItalic', 'RemoveUnderline',
+                    'RemoveStrikeout', 'ClearTextColor', 'RemoveHighlight', 'RemoveBgOutline', 'ApplyFontStandardization',
+                    'NormalizeSpaces', 'NormalizeNumbers', 'ResetLetterSpacing', 'ResetVertOffset', 'FixCasing',
+                    'DisableAllCaps', 'DisableSmallCaps', 'ResetBaseline', 'clean-button', 'CaseNone', 'SentenceCase',
+                    'LowerCase', 'UpperCase', 'CapitalizeEach', 'ToggleCase', 'CleaningCompleted', 'OperationsApplied',
+                    'RevertToOriginal', 'NewClean', 'DoNotClosePanel', 'Loading'].forEach(setTr);
 
                 ['ClearFormatting', 'FontStandardization', 'TextCaseConversion', 'SpecialFormatting'].forEach(addChevron);
             };
@@ -634,14 +639,14 @@
         if (!window.Asc.plugin.event_onContextMenuShow) {
             window.Asc.plugin.event_onContextMenuShow = options => {
                 if (!options) return;
-                
+
                 const contextItems = getContextItems().map(item => ({
                     ...item,
                     text: tr(item.text),
-                    icons: getThemeIcon(), 
+                    icons: getThemeIcon(),
                     items: item.items ? translateContextItems(item.items) : undefined
                 }));
-                
+
                 if (window.Asc.plugin.executeMethod) {
                     window.Asc.plugin.executeMethod("AddContextMenuItem", [{
                         guid: window.Asc.plugin.guid,
