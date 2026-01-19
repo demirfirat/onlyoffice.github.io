@@ -142,21 +142,26 @@
     };
 
     const callCommand = (func, callback) => {
-        if (window.Asc && window.Asc.plugin && window.Asc.plugin.callCommand) {
-            window.Asc.plugin.callCommand(func, false, true, callback);
-        } else {
-            console.error('Asc.plugin.callCommand is not available');
-        }
+        return new Promise((resolve, reject) => {
+            if (window.Asc && window.Asc.plugin && window.Asc.plugin.callCommand) {
+                window.Asc.plugin.callCommand(func, false, true, (result) => {
+                    if (callback) callback(result);
+                    resolve(result);
+                });
+            } else {
+                reject(new Error('Asc.plugin.callCommand is not available'));
+            }
+        });
     };
 
-    const applyTextProp = (method, value) => {
+    const applyTextProp = async (method, value) => {
         if (!window.Asc) window.Asc = {};
         if (!window.Asc.scope) window.Asc.scope = {};
 
         window.Asc.scope.currentMethod = method;
         window.Asc.scope.currentValue = value;
 
-        callCommand(() => {
+        await callCommand(() => {
             const doc = Api.GetDocument();
             const range = doc.GetRangeBySelect();
             const textPr = Api.CreateTextPr();
@@ -181,8 +186,8 @@
 
     // Special handlers
     const specialHandlers = {
-        removeBgOutline: () => {
-            callCommand(() => {
+        removeBgOutline: async () => {
+            await callCommand(() => {
                 const doc = Api.GetDocument();
                 const range = doc.GetRangeBySelect();
                 const noStroke = Api.CreateStroke(0, Api.CreateSolidFill(Api.CreateRGBColor(0, 0, 0)));
@@ -215,7 +220,7 @@
             undoCount++;
         },
 
-        applyFontStandardization: settings => {
+        applyFontStandardization: async settings => {
             if (!settings.applyFontStandardization || (!settings.targetFontFamily && !settings.targetFontSize)) return;
 
             if (!window.Asc) window.Asc = {};
@@ -224,7 +229,7 @@
             window.Asc.scope.targetFontFamily = settings.targetFontFamily;
             window.Asc.scope.targetFontSize = settings.targetFontSize;
 
-            callCommand(() => {
+            await callCommand(() => {
                 const doc = Api.GetDocument();
                 const range = doc.GetRangeBySelect();
                 const textPr = Api.CreateTextPr();
@@ -244,7 +249,7 @@
             undoCount++;
         },
 
-        textCaseConversion: caseOption => {
+        textCaseConversion: async caseOption => {
             if (caseOption === "none") return;
 
             if (!window.Asc) window.Asc = {};
@@ -252,7 +257,7 @@
 
             window.Asc.scope.textCaseOption = caseOption;
 
-            callCommand(() => {
+            await callCommand(() => {
                 const doc = Api.GetDocument();
                 const range = doc.GetRangeBySelect();
 
@@ -411,7 +416,7 @@
         resetBaseline: $("reset-baseline")?.checked || false
     };
 
-    const runCleanCommand = preset => {
+    const runCleanCommand = async preset => {
         const settings = getSettings(preset);
 
         if (!window.Asc) window.Asc = {};
@@ -431,15 +436,15 @@
             settings.textCaseOption = "toggle";
         }
 
-        Object.entries(CONFIG).forEach(([key, config]) => {
-            if (settings[key]) applyTextProp(config.method, config.value);
-        });
+        for (const [key, config] of Object.entries(CONFIG)) {
+            if (settings[key]) await applyTextProp(config.method, config.value);
+        }
 
-        if (settings.removeBgOutline) specialHandlers.removeBgOutline();
-        specialHandlers.applyFontStandardization(settings);
-        specialHandlers.textCaseConversion(settings.textCaseOption);
-
-        console.log("All text cleaning operations completed");
+        if (settings.removeBgOutline) await specialHandlers.removeBgOutline();
+        await specialHandlers.applyFontStandardization(settings);
+        await specialHandlers.textCaseConversion(settings.textCaseOption);
+        hideLoadingOverlay();
+        showActionButtons();
     };
 
     const showLoadingOverlay = () => {
@@ -448,10 +453,13 @@
         if (loading && main) {
             main.style.display = 'none';
             loading.style.display = 'block';
-            setTimeout(() => {
-                loading.style.display = 'none';
-                showActionButtons();
-            }, 1000);
+        }
+    };
+
+    const hideLoadingOverlay = () => {
+        const loading = $('loading-view');
+        if (loading) {
+            loading.style.display = 'none';
         }
     };
 
@@ -488,7 +496,7 @@
 
             if (window.Asc && window.Asc.plugin && window.Asc.plugin.executeMethod) {
                 window.Asc.plugin.executeMethod("Undo", null, () => {
-                    setTimeout(() => performUndo(stepsRemaining - 1), 100);
+                    performUndo(stepsRemaining - 1);
                 });
             }
         };
@@ -502,15 +510,49 @@
         if (main) main.style.display = 'flex';
     };
 
-    const refreshButtonState = async () => {
-        const hasText = await new Promise(resolve =>
+    let lastButtonState = null;
+    const refreshButtonState = () => {
+        if (!window.Asc || !window.Asc.plugin || !window.Asc.plugin.executeMethod) return;
+
+        window.Asc.plugin.executeMethod("CanRedo", [], (canRedo) => {
+            if (canRedo) {
+                const btn = $('clean-button');
+                if (btn && lastButtonState === true) {
+                    return;
+                }
+                window.Asc.plugin.executeMethod("GetSelectedText", [], (text) => {
+                    const hasSelection = text && text.trim().length > 0;
+                    const btn = $('clean-button');
+                    if (btn) {
+                        const shouldDisable = !hasSelection && lastButtonState === null;
+                        if (lastButtonState !== false) {
+                            btn.disabled = false;
+                            lastButtonState = false;
+                        }
+                    }
+                });
+                return;
+            }
+
             callCommand(() => {
-                const doc = Api.GetDocument();
-                return doc.GetText({ Numbering: false }).trim().length > 0;
-            }, resolve)
-        );
-        const btn = $('clean-button');
-        if (btn) btn.disabled = !hasText;
+                try {
+                    const doc = Api.GetDocument();
+                    const text = doc.GetText({ Numbering: false }).trim();
+                    return text.length > 0;
+                } catch (e) {
+                    return false;
+                }
+            }, (hasText) => {
+                const btn = $('clean-button');
+                if (btn) {
+                    const shouldDisable = !hasText;
+                    if (lastButtonState !== shouldDisable) {
+                        btn.disabled = shouldDisable;
+                        lastButtonState = shouldDisable;
+                    }
+                }
+            });
+        });
     };
 
     const onDomReady = () => {
@@ -529,8 +571,9 @@
 
         const cleanBtn = $('clean-button');
         if (cleanBtn) {
-            cleanBtn.addEventListener('click', () => {
+            cleanBtn.addEventListener('click', async () => {
                 showLoadingOverlay();
+                await runCleanCommand();
                 if (window.Asc?.plugin?.button) window.Asc.plugin.button(0);
             });
         }
@@ -591,15 +634,20 @@
 
         if (!window.Asc.plugin.init) {
             window.Asc.plugin.init = function () {
-                console.log("TextCleaner plugin initialized");
                 refreshButtonState();
+
+                if (window.Asc.plugin.attachEditorEvent) {
+                    window.Asc.plugin.attachEditorEvent("onParagraphText", () => {
+                        refreshButtonState();
+                    });
+                }
             };
         }
 
         if (!window.Asc.plugin.button) {
             window.Asc.plugin.button = id => {
-                if (id === 0) runCleanCommand();
-                else if (window.Asc.plugin.executeCommand) {
+                if (id === 0) {
+                } else if (window.Asc.plugin.executeCommand) {
                     window.Asc.plugin.executeCommand("close", "");
                 }
             };
@@ -636,32 +684,29 @@
             };
         }
 
-        if (!window.Asc.plugin.event_onContextMenuShow) {
-            window.Asc.plugin.event_onContextMenuShow = options => {
-                if (!options) return;
+        Asc.plugin.attachEvent("onContextMenuShow", (options) => {
+            if (!options) return;
 
-                const contextItems = getContextItems().map(item => ({
-                    ...item,
-                    text: tr(item.text),
-                    icons: getThemeIcon(),
-                    items: item.items ? translateContextItems(item.items) : undefined
-                }));
+            const contextItems = getContextItems().map(item => ({
+                ...item,
+                text: tr(item.text),
+                icons: getThemeIcon(),
+                items: item.items ? translateContextItems(item.items) : undefined
+            }));
 
-                if (window.Asc.plugin.executeMethod) {
-                    window.Asc.plugin.executeMethod("AddContextMenuItem", [{
-                        guid: window.Asc.plugin.guid,
-                        items: contextItems
-                    }]);
-                }
+            const items = {
+                guid: window.Asc.plugin.guid,
+                items: contextItems
             };
-        }
 
-        if (!window.Asc.plugin.event_onContextMenuClick) {
-            window.Asc.plugin.event_onContextMenuClick = id => {
-                const itemId = id.split("_oo_sep_")[0];
-                if (contextMenuActions[itemId]) contextMenuActions[itemId]();
-            };
-        }
+            window.Asc.plugin.executeMethod("AddContextMenuItem", [items]);
+        });
+
+        Object.keys(contextMenuActions).forEach(itemId => {
+            Asc.plugin.attachContextMenuClickEvent(itemId, () => {
+                contextMenuActions[itemId]();
+            });
+        });
 
         if (!window.Asc.plugin.event_onDocumentContentReady) {
             window.Asc.plugin.event_onDocumentContentReady = refreshButtonState;
@@ -669,6 +714,14 @@
 
         if (!window.Asc.plugin.event_onTargetChanged) {
             window.Asc.plugin.event_onTargetChanged = refreshButtonState;
+        }
+
+        if (!window.Asc.plugin.event_onDocumentContentChange) {
+            window.Asc.plugin.event_onDocumentContentChange = refreshButtonState;
+        }
+
+        if (!window.Asc.plugin.event_onParagraphText) {
+            window.Asc.plugin.event_onParagraphText = refreshButtonState;
         }
     };
 
@@ -681,8 +734,6 @@
     const waitForPlugin = () => {
         if (window.Asc && window.Asc.plugin && typeof window.Asc.plugin === 'object') {
             setupPlugin();
-        } else {
-            setTimeout(waitForPlugin, 50);
         }
     };
 

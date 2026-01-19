@@ -1,5 +1,10 @@
 # Change Log
 
+## 1.2.0
+- fixed redo state disappears.
+- contextMenu event updated.
+- All timers have been removed and client methods have been updated.
+
 ## 1.1.0
 
 - Fixed several language key issues.
